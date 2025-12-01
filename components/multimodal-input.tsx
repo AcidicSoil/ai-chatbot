@@ -45,6 +45,7 @@ import { PreviewAttachment } from "./preview-attachment";
 import { SuggestedActions } from "./suggested-actions";
 import { Button } from "./ui/button";
 import type { VisibilityType } from "./visibility-selector";
+import type { ChatModel } from "@/lib/ai/models";
 
 function PureMultimodalInput({
   chatId,

@@ -1,33 +1,30 @@
-import { auth } from "@/app/(auth)/auth";
-import { ChatSDKError } from "@/lib/errors";
-import { getCurrentLlm, getOrLoadLlm } from "@/lib/lmstudio/models";
+// app/(chat)/api/lmstudio/models/route.ts
+import { NextResponse } from "next/server";
+import { LMStudioClient } from "@lmstudio/sdk";
+import type { ChatModel } from "@/lib/ai/models";
 
-export async function GET(request: Request) {
-  const session = await auth();
+export const runtime = "nodejs"; // LMStudio SDK is Node-only
 
-  if (!session?.user) {
-    return new ChatSDKError("unauthorized:lmstudio").toResponse();
-  }
-
-  const { searchParams } = new URL(request.url);
-  const modelKey = searchParams.get("modelKey");
-
+export async function GET() {
   try {
-    const model = modelKey
-      ? await getOrLoadLlm(modelKey)
-      : await getCurrentLlm();
+    const client = new LMStudioClient();
+    const downloaded = await client.system.listDownloadedModels();
 
-    return Response.json(
-      {
-        identifier: (model as any).identifier,
-        modelKey: (model as any).modelKey,
-      },
-      { status: 200 }
-    );
-  } catch (_err) {
-    return new ChatSDKError(
-      "not_found:lmstudio",
-      "No LM Studio model is currently loaded."
-    ).toResponse();
+    const models: ChatModel[] = downloaded
+      .filter((m: any) => m.type === "llm")
+      .map(
+        (m: any): ChatModel => ({
+          // ID format: lmstudio:<modelKey>
+          id: `lmstudio:${m.modelKey}`,
+          name: `LM Studio – ${m.displayName ?? m.modelKey}`,
+          description: `Local LM Studio model (${m.modelKey})`,
+        })
+      );
+
+    return NextResponse.json(models, { status: 200 });
+  } catch (error) {
+    console.warn("LM Studio listDownloadedModels failed", error);
+    // Fallback: no LM Studio models, UI will just show the static ones
+    return NextResponse.json([], { status: 200 });
   }
 }
