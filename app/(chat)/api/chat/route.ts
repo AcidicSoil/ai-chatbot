@@ -44,13 +44,6 @@ import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-
-const lmstudio = createOpenAICompatible({
-  name: "lmstudio",
-  baseURL: process.env.LMSTUDIO_BASE_URL ?? "http://localhost:1234/v1",
-});
-
 
 export const maxDuration = 60;
 
@@ -186,12 +179,8 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
-        const model = selectedChatModel.startsWith("lmstudio:")
-          ? lmstudio(selectedChatModel.replace(/^lmstudio:/, ""))
-          : myProvider.languageModel(selectedChatModel);
-
         const result = streamText({
-          model,
+          model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
@@ -221,9 +210,8 @@ export async function POST(request: Request) {
           onFinish: async ({ usage }) => {
             try {
               const providers = await getTokenlensCatalog();
-              const modelId = selectedChatModel.startsWith("lmstudio:")
-                ? undefined
-                : myProvider.languageModel(selectedChatModel).modelId;
+              const modelId =
+                myProvider.languageModel(selectedChatModel).modelId;
               if (!modelId) {
                 finalMergedUsage = usage;
                 dataStream.write({

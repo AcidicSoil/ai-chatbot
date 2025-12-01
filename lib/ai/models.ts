@@ -23,7 +23,8 @@ export const chatModels: ChatModel[] = [
     name: "LM Studio – Local",
     description:
       "Local model served via LM Studio OpenAI-compatible API (http://localhost:1234/v1 by default)",
-  },{
+  },
+  {
     id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro (CLI)",
     description:

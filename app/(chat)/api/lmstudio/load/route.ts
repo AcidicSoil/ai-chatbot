@@ -1,49 +1,18 @@
-import { auth } from "@/app/(auth)/auth";
-import { ChatSDKError } from "@/lib/errors";
-import { loadLlmWithTtl } from "@/lib/lmstudio/models";
+// app/api/lmstudio/load/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { LMStudioClient } from "@lmstudio/sdk";
 
-type LoadBody = {
-  modelKey?: string;
-  ttlSeconds?: number;
-};
-
-export async function POST(request: Request) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return new ChatSDKError("unauthorized:lmstudio").toResponse();
-  }
-
-  let body: LoadBody;
-  try {
-    body = (await request.json()) as LoadBody;
-  } catch {
-    return new ChatSDKError(
-      "bad_request:api",
-      "Invalid JSON body."
-    ).toResponse();
-  }
-
-  const { modelKey, ttlSeconds } = body;
+export async function POST(req: NextRequest) {
+  const { modelKey, ttl } = await req.json();
 
   if (!modelKey) {
-    return new ChatSDKError(
-      "bad_request:api",
-      "Parameter modelKey is required."
-    ).toResponse();
+    return new NextResponse("modelKey required", { status: 400 });
   }
 
-  const ttl =
-    typeof ttlSeconds === "number" && ttlSeconds > 0 ? ttlSeconds : 300;
+  const client = new LMStudioClient();
 
-  const model = await loadLlmWithTtl(modelKey, ttl);
+  // Load and keep it warm; ttl is idle time in seconds before auto-unload
+  await client.llm.load(modelKey, ttl ? { ttl } : undefined);
 
-  return Response.json(
-    {
-      modelKey,
-      identifier: (model as any).identifier,
-      ttlSeconds: ttl,
-    },
-    { status: 200 }
-  );
+  return NextResponse.json({ ok: true, modelKey, ttl: ttl ?? null });
 }
