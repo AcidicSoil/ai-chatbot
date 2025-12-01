@@ -15,7 +15,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
+    "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
+    "code": "codefetch --include-dir src,lib --exclude-dir .ruler,.cursor --exclude-files \"*.test.ts\", -o app_lib.md"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.15",
@@ -30,6 +31,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.35.3",
     "@icons-pack/react-simple-icons": "^13.7.0",
+    "@lmstudio/sdk": "^1.5.0",
     "@neondatabase/serverless": "^1.0.2",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.200.0",
@@ -118,6 +120,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "codefetch": "^2.2.0",
     "drizzle-kit": "^0.25.0",
     "postcss": "^8",
     "tailwindcss": "^4.1.13",

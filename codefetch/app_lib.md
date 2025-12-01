@@ -157,24 +157,6 @@ function getStatusCodeByType(type: ErrorType) {
 }
 ```
 
-lib/lmstudioClient.ts
-```
-// lib/lmstudioClient.ts
-import { LMStudioClient } from "@lmstudio/sdk";
-
-let clientPromise: Promise<LMStudioClient> | null = null;
-
-export function getLmStudioClient(): Promise<LMStudioClient> {
-  if (!clientPromise) {
-    clientPromise = (async () => {
-      const client = new LMStudioClient();
-      return client;
-    })();
-  }
-  return clientPromise;
-}
-```
-
 lib/types.ts
 ```
 import type { InferUITool, UIMessage } from "ai";
@@ -551,18 +533,6 @@ export const chatModels: ChatModel[] = [
     description:
       "Uses advanced chain-of-thought reasoning for complex problems",
   },
-  {
-    id: "lmstudio-chat",
-    name: "LM Studio – Local",
-    description:
-      "Local model served via LM Studio OpenAI-compatible API (http://localhost:1234/v1 by default)",
-  },
-  {
-    id: "gemini-2.5-pro",
-    name: "Gemini 2.5 Pro (CLI)",
-    description:
-      "Google Gemini via ai-sdk-provider-gemini-cli and Gemini CLI / API key",
-  },
 ];
 ```
 
@@ -700,33 +670,6 @@ import {
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
-import { geminiCli } from "@ai-sdk/community-providers-gemini-cli";
-import { huggingface } from "@ai-sdk/providers-huggingface";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { LMStudioClient } from "@lmstudio/sdk";
-
-
-
-const lmstudio = createOpenAICompatible({
-  name: "lmstudio",
-  baseURL: process.env.LMSTUDIO_BASE_URL ?? "http://localhost:1234/v1",
-});
-
-// Default to OAuth via local gemini CLI for dev, with optional API key mode
-const gemini = createGeminiProvider({
-  authType:
-    process.env.GEMINI_AUTH_TYPE === "api-key" ||
-    process.env.GEMINI_AUTH_TYPE === "gemini-api-key"
-      ? (process.env.GEMINI_AUTH_TYPE as "api-key" | "gemini-api-key")
-      : "oauth-personal",
-  apiKey:
-    process.env.GEMINI_AUTH_TYPE === "api-key" ||
-    process.env.GEMINI_AUTH_TYPE === "gemini-api-key"
-      ? process.env.GEMINI_API_KEY
-      : undefined,
-});
-
-
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
@@ -753,16 +696,6 @@ export const myProvider = isTestEnvironment
         }),
         "title-model": gateway.languageModel("xai/grok-2-1212"),
         "artifact-model": gateway.languageModel("xai/grok-2-1212"),
-        // NEW: LM Studio chat model
-        //
-        // Make sure you have this model downloaded in LM Studio and that
-        // the ID matches what LM Studio exposes (e.g. "llama-3.2-1b").
-        "lmstudio-chat": lmstudio("llama-3.2-1b"),
-
-        // NEW: Gemini chat model via ai-sdk-provider-gemini-cli
-        //
-        // This ID must match what you configure in the UI (see models.ts).
-        "gemini-2.5-pro": gemini("gemini-2.5-pro"),
       },
     });
 ```
@@ -867,783 +800,6 @@ export const documentHandlersByArtifactKind: DocumentHandler[] = [
 ];
 
 export const artifactKinds = ["text", "code", "sheet"] as const;
-```
-
-lib/editor/config.ts
-```
-import { textblockTypeInputRule } from "prosemirror-inputrules";
-import { Schema } from "prosemirror-model";
-import { schema } from "prosemirror-schema-basic";
-import { addListNodes } from "prosemirror-schema-list";
-import type { Transaction } from "prosemirror-state";
-import type { EditorView } from "prosemirror-view";
-import type { MutableRefObject } from "react";
-
-import { buildContentFromDocument } from "./functions";
-
-export const documentSchema = new Schema({
-  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
-  marks: schema.spec.marks,
-});
-
-export function headingRule(level: number) {
-  return textblockTypeInputRule(
-    new RegExp(`^(#{1,${level}})\\s$`),
-    documentSchema.nodes.heading,
-    () => ({ level })
-  );
-}
-
-export const handleTransaction = ({
-  transaction,
-  editorRef,
-  onSaveContent,
-}: {
-  transaction: Transaction;
-  editorRef: MutableRefObject<EditorView | null>;
-  onSaveContent: (updatedContent: string, debounce: boolean) => void;
-}) => {
-  if (!editorRef || !editorRef.current) {
-    return;
-  }
-
-  const newState = editorRef.current.state.apply(transaction);
-  editorRef.current.updateState(newState);
-
-  if (transaction.docChanged && !transaction.getMeta("no-save")) {
-    const updatedContent = buildContentFromDocument(newState.doc);
-
-    if (transaction.getMeta("no-debounce")) {
-      onSaveContent(updatedContent, false);
-    } else {
-      onSaveContent(updatedContent, true);
-    }
-  }
-};
-```
-
-lib/editor/diff.js
-```
-// Modified from https://github.com/hamflx/prosemirror-diff/blob/master/src/diff.js
-
-import { diff_match_patch } from "diff-match-patch";
-import { Fragment, Node } from "prosemirror-model";
-
-export const DiffType = {
-  Unchanged: 0,
-  Deleted: -1,
-  Inserted: 1,
-};
-
-export const patchDocumentNode = (schema, oldNode, newNode) => {
-  assertNodeTypeEqual(oldNode, newNode);
-
-  const finalLeftChildren = [];
-  const finalRightChildren = [];
-
-  const oldChildren = normalizeNodeContent(oldNode);
-  const newChildren = normalizeNodeContent(newNode);
-  const oldChildLen = oldChildren.length;
-  const newChildLen = newChildren.length;
-  const minChildLen = Math.min(oldChildLen, newChildLen);
-
-  let left = 0;
-  let right = 0;
-
-  for (; left < minChildLen; left++) {
-    const oldChild = oldChildren[left];
-    const newChild = newChildren[left];
-    if (!isNodeEqual(oldChild, newChild)) {
-      break;
-    }
-    finalLeftChildren.push(...ensureArray(oldChild));
-  }
-
-  for (; right + left + 1 < minChildLen; right++) {
-    const oldChild = oldChildren[oldChildLen - right - 1];
-    const newChild = newChildren[newChildLen - right - 1];
-    if (!isNodeEqual(oldChild, newChild)) {
-      break;
-    }
-    finalRightChildren.unshift(...ensureArray(oldChild));
-  }
-
-  const diffOldChildren = oldChildren.slice(left, oldChildLen - right);
-  const diffNewChildren = newChildren.slice(left, newChildLen - right);
-
-  if (diffOldChildren.length && diffNewChildren.length) {
-    const matchedNodes = matchNodes(
-      schema,
-      diffOldChildren,
-      diffNewChildren
-    ).sort((a, b) => b.count - a.count);
-    const bestMatch = matchedNodes[0];
-    if (bestMatch) {
-      const { oldStartIndex, newStartIndex, oldEndIndex, newEndIndex } =
-        bestMatch;
-      const oldBeforeMatchChildren = diffOldChildren.slice(0, oldStartIndex);
-      const newBeforeMatchChildren = diffNewChildren.slice(0, newStartIndex);
-
-      finalLeftChildren.push(
-        ...patchRemainNodes(
-          schema,
-          oldBeforeMatchChildren,
-          newBeforeMatchChildren
-        )
-      );
-      finalLeftChildren.push(
-        ...diffOldChildren.slice(oldStartIndex, oldEndIndex)
-      );
-
-      const oldAfterMatchChildren = diffOldChildren.slice(oldEndIndex);
-      const newAfterMatchChildren = diffNewChildren.slice(newEndIndex);
-
-      finalRightChildren.unshift(
-        ...patchRemainNodes(
-          schema,
-          oldAfterMatchChildren,
-          newAfterMatchChildren
-        )
-      );
-    } else {
-      finalLeftChildren.push(
-        ...patchRemainNodes(schema, diffOldChildren, diffNewChildren)
-      );
-    }
-  } else {
-    finalLeftChildren.push(
-      ...patchRemainNodes(schema, diffOldChildren, diffNewChildren)
-    );
-  }
-
-  return createNewNode(oldNode, [...finalLeftChildren, ...finalRightChildren]);
-};
-
-const matchNodes = (_schema, oldChildren, newChildren) => {
-  const matches = [];
-  for (
-    let oldStartIndex = 0;
-    oldStartIndex < oldChildren.length;
-    oldStartIndex++
-  ) {
-    const oldStartNode = oldChildren[oldStartIndex];
-    const newStartIndex = findMatchNode(newChildren, oldStartNode);
-
-    if (newStartIndex !== -1) {
-      let oldEndIndex = oldStartIndex + 1;
-      let newEndIndex = newStartIndex + 1;
-      for (
-        ;
-        oldEndIndex < oldChildren.length && newEndIndex < newChildren.length;
-        oldEndIndex++, newEndIndex++
-      ) {
-        const oldEndNode = oldChildren[oldEndIndex];
-        if (!isNodeEqual(newChildren[newEndIndex], oldEndNode)) {
-          break;
-        }
-      }
-      matches.push({
-        oldStartIndex,
-        newStartIndex,
-        oldEndIndex,
-        newEndIndex,
-        count: newEndIndex - newStartIndex,
-      });
-    }
-  }
-  return matches;
-};
-
-const findMatchNode = (children, node, startIndex = 0) => {
-  for (let i = startIndex; i < children.length; i++) {
-    if (isNodeEqual(children[i], node)) {
-      return i;
-    }
-  }
-  return -1;
-};
-
-const patchRemainNodes = (schema, oldChildren, newChildren) => {
-  const finalLeftChildren = [];
-  const finalRightChildren = [];
-  const oldChildLen = oldChildren.length;
-  const newChildLen = newChildren.length;
-  let left = 0;
-  let right = 0;
-  while (oldChildLen - left - right > 0 && newChildLen - left - right > 0) {
-    const leftOldNode = oldChildren[left];
-    const leftNewNode = newChildren[left];
-    const rightOldNode = oldChildren[oldChildLen - right - 1];
-    const rightNewNode = newChildren[newChildLen - right - 1];
-    let updateLeft =
-      !isTextNode(leftOldNode) && matchNodeType(leftOldNode, leftNewNode);
-    let updateRight =
-      !isTextNode(rightOldNode) && matchNodeType(rightOldNode, rightNewNode);
-    if (Array.isArray(leftOldNode) && Array.isArray(leftNewNode)) {
-      finalLeftChildren.push(
-        ...patchTextNodes(schema, leftOldNode, leftNewNode)
-      );
-      left += 1;
-      continue;
-    }
-
-    if (updateLeft && updateRight) {
-      const equalityLeft = computeChildEqualityFactor(leftOldNode, leftNewNode);
-      const equalityRight = computeChildEqualityFactor(
-        rightOldNode,
-        rightNewNode
-      );
-      if (equalityLeft < equalityRight) {
-        updateLeft = false;
-      } else {
-        updateRight = false;
-      }
-    }
-    if (updateLeft) {
-      finalLeftChildren.push(
-        patchDocumentNode(schema, leftOldNode, leftNewNode)
-      );
-      left += 1;
-    } else if (updateRight) {
-      finalRightChildren.unshift(
-        patchDocumentNode(schema, rightOldNode, rightNewNode)
-      );
-      right += 1;
-    } else {
-      // Delete and insert
-      finalLeftChildren.push(
-        createDiffNode(schema, leftOldNode, DiffType.Deleted)
-      );
-      finalLeftChildren.push(
-        createDiffNode(schema, leftNewNode, DiffType.Inserted)
-      );
-      left += 1;
-    }
-  }
-
-  const deleteNodeLen = oldChildLen - left - right;
-  const insertNodeLen = newChildLen - left - right;
-  if (deleteNodeLen) {
-    finalLeftChildren.push(
-      ...oldChildren
-        .slice(left, left + deleteNodeLen)
-        .flat()
-        .map((node) => createDiffNode(schema, node, DiffType.Deleted))
-    );
-  }
-
-  if (insertNodeLen) {
-    finalRightChildren.unshift(
-      ...newChildren
-        .slice(left, left + insertNodeLen)
-        .flat()
-        .map((node) => createDiffNode(schema, node, DiffType.Inserted))
-    );
-  }
-
-  return [...finalLeftChildren, ...finalRightChildren];
-};
-
-// Updated function to perform sentence-level diffs
-export const patchTextNodes = (schema, oldNode, newNode) => {
-  const dmp = new diff_match_patch();
-
-  // Concatenate the text from the text nodes
-  const oldText = oldNode.map((n) => getNodeText(n)).join("");
-  const newText = newNode.map((n) => getNodeText(n)).join("");
-
-  // Tokenize the text into sentences
-  const oldSentences = tokenizeSentences(oldText);
-  const newSentences = tokenizeSentences(newText);
-
-  // Map sentences to unique characters
-  const { chars1, chars2, lineArray } = sentencesToChars(
-    oldSentences,
-    newSentences
-  );
-
-  // Perform the diff
-  let diffs = dmp.diff_main(chars1, chars2, false);
-
-  // Convert back to sentences
-  diffs = diffs.map(([type, text]) => {
-    const sentences = text
-      .split("")
-      .map((char) => lineArray[char.charCodeAt(0)]);
-    return [type, sentences];
-  });
-
-  // Map diffs to nodes
-  const res = diffs.flatMap(([type, sentences]) => {
-    return sentences.map((sentence) => {
-      const node = createTextNode(
-        schema,
-        sentence,
-        type !== DiffType.Unchanged ? [createDiffMark(schema, type)] : []
-      );
-      return node;
-    });
-  });
-
-  return res;
-};
-
-// Function to tokenize text into sentences
-const tokenizeSentences = (text) => {
-  return text.match(/[^.!?]+[.!?]*\s*/g) || [];
-};
-
-// Function to map sentences to unique characters
-const sentencesToChars = (oldSentences, newSentences) => {
-  const lineArray = [];
-  const lineHash = {};
-  let lineStart = 0;
-
-  const chars1 = oldSentences
-    .map((sentence) => {
-      const line = sentence;
-      if (line in lineHash) {
-        return String.fromCharCode(lineHash[line]);
-      }
-      lineHash[line] = lineStart;
-      lineArray[lineStart] = line;
-      lineStart++;
-      return String.fromCharCode(lineHash[line]);
-    })
-    .join("");
-
-  const chars2 = newSentences
-    .map((sentence) => {
-      const line = sentence;
-      if (line in lineHash) {
-        return String.fromCharCode(lineHash[line]);
-      }
-      lineHash[line] = lineStart;
-      lineArray[lineStart] = line;
-      lineStart++;
-      return String.fromCharCode(lineHash[line]);
-    })
-    .join("");
-
-  return { chars1, chars2, lineArray };
-};
-
-export const computeChildEqualityFactor = (_node1, _node2) => {
-  return 0;
-};
-
-export const assertNodeTypeEqual = (node1, node2) => {
-  if (getNodeProperty(node1, "type") !== getNodeProperty(node2, "type")) {
-    throw new Error(`node type not equal: ${node1.type} !== ${node2.type}`);
-  }
-};
-
-export const ensureArray = (value) => {
-  return Array.isArray(value) ? value : [value];
-};
-
-export const isNodeEqual = (node1, node2) => {
-  const isNode1Array = Array.isArray(node1);
-  const isNode2Array = Array.isArray(node2);
-  if (isNode1Array !== isNode2Array) {
-    return false;
-  }
-  if (isNode1Array) {
-    return (
-      node1.length === node2.length &&
-      node1.every((node, index) => isNodeEqual(node, node2[index]))
-    );
-  }
-
-  const type1 = getNodeProperty(node1, "type");
-  const type2 = getNodeProperty(node2, "type");
-  if (type1 !== type2) {
-    return false;
-  }
-  if (isTextNode(node1)) {
-    const text1 = getNodeProperty(node1, "text");
-    const text2 = getNodeProperty(node2, "text");
-    if (text1 !== text2) {
-      return false;
-    }
-  }
-  const attrs1 = getNodeAttributes(node1);
-  const attrs2 = getNodeAttributes(node2);
-  const attrs = [...new Set([...Object.keys(attrs1), ...Object.keys(attrs2)])];
-  for (const attr of attrs) {
-    if (attrs1[attr] !== attrs2[attr]) {
-      return false;
-    }
-  }
-  const marks1 = getNodeMarks(node1);
-  const marks2 = getNodeMarks(node2);
-  if (marks1.length !== marks2.length) {
-    return false;
-  }
-  for (let i = 0; i < marks1.length; i++) {
-    if (!isNodeEqual(marks1[i], marks2[i])) {
-      return false;
-    }
-  }
-  const children1 = getNodeChildren(node1);
-  const children2 = getNodeChildren(node2);
-  if (children1.length !== children2.length) {
-    return false;
-  }
-  for (let i = 0; i < children1.length; i++) {
-    if (!isNodeEqual(children1[i], children2[i])) {
-      return false;
-    }
-  }
-  return true;
-};
-
-export const normalizeNodeContent = (node) => {
-  const content = getNodeChildren(node) ?? [];
-  const res = [];
-  for (let i = 0; i < content.length; i++) {
-    const child = content[i];
-    if (isTextNode(child)) {
-      const textNodes = [];
-      for (
-        let textNode = content[i];
-        i < content.length && isTextNode(textNode);
-        textNode = content[++i]
-      ) {
-        textNodes.push(textNode);
-      }
-      i--;
-      res.push(textNodes);
-    } else {
-      res.push(child);
-    }
-  }
-  return res;
-};
-
-export const getNodeProperty = (node, property) => {
-  if (property === "type") {
-    return node.type?.name;
-  }
-  return node[property];
-};
-
-export const getNodeAttribute = (node, attribute) =>
-  node.attrs ? node.attrs[attribute] : undefined;
-
-export const getNodeAttributes = (node) => (node.attrs ? node.attrs : {});
-
-export const getNodeMarks = (node) => node.marks ?? [];
-
-export const getNodeChildren = (node) => node.content?.content ?? [];
-
-export const getNodeText = (node) => node.text;
-
-export const isTextNode = (node) => node.type?.name === "text";
-
-export const matchNodeType = (node1, node2) =>
-  node1.type?.name === node2.type?.name ||
-  (Array.isArray(node1) && Array.isArray(node2));
-
-export const createNewNode = (oldNode, children) => {
-  if (!oldNode.type) {
-    throw new Error("oldNode.type is undefined");
-  }
-  return new Node(
-    oldNode.type,
-    oldNode.attrs,
-    Fragment.fromArray(children),
-    oldNode.marks
-  );
-};
-
-export const createDiffNode = (schema, node, type) => {
-  return mapDocumentNode(node, (currentNode) => {
-    if (isTextNode(currentNode)) {
-      return createTextNode(schema, getNodeText(currentNode), [
-        ...(currentNode.marks || []),
-        createDiffMark(schema, type),
-      ]);
-    }
-    return currentNode;
-  });
-};
-
-function mapDocumentNode(node, mapper) {
-  const copy = node.copy(
-    Fragment.from(
-      node.content.content
-        .map((currentNode) => mapDocumentNode(currentNode, mapper))
-        .filter((n) => n)
-    )
-  );
-  return mapper(copy) || copy;
-}
-
-export const createDiffMark = (schema, type) => {
-  if (type === DiffType.Inserted) {
-    return schema.mark("diffMark", { type });
-  }
-  if (type === DiffType.Deleted) {
-    return schema.mark("diffMark", { type });
-  }
-  throw new Error("type is not valid");
-};
-
-export const createTextNode = (schema, content, marks = []) => {
-  return schema.text(content, marks);
-};
-
-export const diffEditor = (schema, oldDoc, newDoc) => {
-  const oldNode = Node.fromJSON(schema, oldDoc);
-  const newNode = Node.fromJSON(schema, newDoc);
-  return patchDocumentNode(schema, oldNode, newNode);
-};
-```
-
-lib/editor/functions.tsx
-```
-"use client";
-
-import { defaultMarkdownSerializer } from "prosemirror-markdown";
-import { DOMParser, type Node } from "prosemirror-model";
-import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
-import { renderToString } from "react-dom/server";
-
-import { Response } from "@/components/elements/response";
-
-import { documentSchema } from "./config";
-import { createSuggestionWidget, type UISuggestion } from "./suggestions";
-
-export const buildDocumentFromContent = (content: string) => {
-  const parser = DOMParser.fromSchema(documentSchema);
-  const stringFromMarkdown = renderToString(<Response>{content}</Response>);
-  const tempContainer = document.createElement("div");
-  tempContainer.innerHTML = stringFromMarkdown;
-  return parser.parse(tempContainer);
-};
-
-export const buildContentFromDocument = (document: Node) => {
-  return defaultMarkdownSerializer.serialize(document);
-};
-
-export const createDecorations = (
-  suggestions: UISuggestion[],
-  view: EditorView
-) => {
-  const decorations: Decoration[] = [];
-
-  for (const suggestion of suggestions) {
-    decorations.push(
-      Decoration.inline(
-        suggestion.selectionStart,
-        suggestion.selectionEnd,
-        {
-          class: "suggestion-highlight",
-        },
-        {
-          suggestionId: suggestion.id,
-          type: "highlight",
-        }
-      )
-    );
-
-    decorations.push(
-      Decoration.widget(
-        suggestion.selectionStart,
-        (currentView) => {
-          const { dom } = createSuggestionWidget(suggestion, currentView);
-          return dom;
-        },
-        {
-          suggestionId: suggestion.id,
-          type: "widget",
-        }
-      )
-    );
-  }
-
-  return DecorationSet.create(view.state.doc, decorations);
-};
-```
-
-lib/editor/react-renderer.tsx
-```
-import { createRoot } from "react-dom/client";
-
-// biome-ignore lint/complexity/noStaticOnlyClass: "Needs to be static"
-export class ReactRenderer {
-  static render(component: React.ReactElement, dom: HTMLElement) {
-    const root = createRoot(dom);
-    root.render(component);
-
-    return {
-      destroy: () => root.unmount(),
-    };
-  }
-}
-```
-
-lib/editor/suggestions.tsx
-```
-import type { Node } from "prosemirror-model";
-import { Plugin, PluginKey } from "prosemirror-state";
-import {
-  type Decoration,
-  DecorationSet,
-  type EditorView,
-} from "prosemirror-view";
-import { createRoot } from "react-dom/client";
-import type { ArtifactKind } from "@/components/artifact";
-import { Suggestion as PreviewSuggestion } from "@/components/suggestion";
-import type { Suggestion } from "@/lib/db/schema";
-
-export interface UISuggestion extends Suggestion {
-  selectionStart: number;
-  selectionEnd: number;
-}
-
-type Position = {
-  start: number;
-  end: number;
-};
-
-function findPositionsInDoc(doc: Node, searchText: string): Position | null {
-  let positions: { start: number; end: number } | null = null;
-
-  doc.nodesBetween(0, doc.content.size, (node, pos) => {
-    if (node.isText && node.text) {
-      const index = node.text.indexOf(searchText);
-
-      if (index !== -1) {
-        positions = {
-          start: pos + index,
-          end: pos + index + searchText.length,
-        };
-
-        return false;
-      }
-    }
-
-    return true;
-  });
-
-  return positions;
-}
-
-export function projectWithPositions(
-  doc: Node,
-  suggestions: Suggestion[]
-): UISuggestion[] {
-  return suggestions.map((suggestion) => {
-    const positions = findPositionsInDoc(doc, suggestion.originalText);
-
-    if (!positions) {
-      return {
-        ...suggestion,
-        selectionStart: 0,
-        selectionEnd: 0,
-      };
-    }
-
-    return {
-      ...suggestion,
-      selectionStart: positions.start,
-      selectionEnd: positions.end,
-    };
-  });
-}
-
-export function createSuggestionWidget(
-  suggestion: UISuggestion,
-  view: EditorView,
-  artifactKind: ArtifactKind = "text"
-): { dom: HTMLElement; destroy: () => void } {
-  const dom = document.createElement("span");
-  const root = createRoot(dom);
-
-  dom.addEventListener("mousedown", (event) => {
-    event.preventDefault();
-    view.dom.blur();
-  });
-
-  const onApply = () => {
-    const { state, dispatch } = view;
-
-    const decorationTransaction = state.tr;
-    const currentState = suggestionsPluginKey.getState(state);
-    const currentDecorations = currentState?.decorations;
-
-    if (currentDecorations) {
-      const newDecorations = DecorationSet.create(
-        state.doc,
-        currentDecorations.find().filter((decoration: Decoration) => {
-          return decoration.spec.suggestionId !== suggestion.id;
-        })
-      );
-
-      decorationTransaction.setMeta(suggestionsPluginKey, {
-        decorations: newDecorations,
-        selected: null,
-      });
-      dispatch(decorationTransaction);
-    }
-
-    const textTransaction = view.state.tr.replaceWith(
-      suggestion.selectionStart,
-      suggestion.selectionEnd,
-      state.schema.text(suggestion.suggestedText)
-    );
-
-    textTransaction.setMeta("no-debounce", true);
-
-    dispatch(textTransaction);
-  };
-
-  root.render(
-    <PreviewSuggestion
-      artifactKind={artifactKind}
-      onApply={onApply}
-      suggestion={suggestion}
-    />
-  );
-
-  return {
-    dom,
-    destroy: () => {
-      // Wrapping unmount in setTimeout to avoid synchronous unmounting during render
-      setTimeout(() => {
-        root.unmount();
-      }, 0);
-    },
-  };
-}
-
-export const suggestionsPluginKey = new PluginKey("suggestions");
-export const suggestionsPlugin = new Plugin({
-  key: suggestionsPluginKey,
-  state: {
-    init() {
-      return { decorations: DecorationSet.empty, selected: null };
-    },
-    apply(tr, state) {
-      const newDecorations = tr.getMeta(suggestionsPluginKey);
-      if (newDecorations) {
-        return newDecorations;
-      }
-
-      return {
-        decorations: state.decorations.map(tr.mapping, tr.doc),
-        selected: state.selected,
-      };
-    },
-  },
-  props: {
-    decorations(state) {
-      return this.getState(state)?.decorations ?? DecorationSet.empty;
-    },
-  },
-});
 ```
 
 lib/db/migrate.ts
@@ -2476,165 +1632,781 @@ export function generateDummyPassword() {
 }
 ```
 
-lib/lmstudio/client.ts
+lib/editor/config.ts
 ```
-// lib/lmstudio/client.ts
-import "server-only";
-import { LMStudioClient } from "@lmstudio/sdk";
+import { textblockTypeInputRule } from "prosemirror-inputrules";
+import { Schema } from "prosemirror-model";
+import { schema } from "prosemirror-schema-basic";
+import { addListNodes } from "prosemirror-schema-list";
+import type { Transaction } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
+import type { MutableRefObject } from "react";
 
-let client: LMStudioClient | undefined;
+import { buildContentFromDocument } from "./functions";
 
-export function getLMStudioClient(): LMStudioClient {
-  if (!client) {
-    client = new LMStudioClient();
-  }
-  return client;
-}
-```
+export const documentSchema = new Schema({
+  nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
+  marks: schema.spec.marks,
+});
 
-lib/lmstudio/embedding.ts
-```
-// lib/lmstudio/embedding.ts
-import { getLMStudioClient } from "./client";
-
-const DEFAULT_EMBED_MODEL =
-  process.env.LMSTUDIO_EMBED_MODEL ?? "nomic-embed-text-v1.5";
-
-/**
- * Single text → one embedding vector.
- */
-export async function embedTextWithLmStudio(
-  text: string,
-  modelKey = DEFAULT_EMBED_MODEL
-): Promise<number[]> {
-  const client = getLMStudioClient();
-
-  const model = await client.embedding.model(modelKey);
-  const { embedding } = await model.embed(text);
-
-  return embedding;
+export function headingRule(level: number) {
+  return textblockTypeInputRule(
+    new RegExp(`^(#{1,${level}})\\s$`),
+    documentSchema.nodes.heading,
+    () => ({ level })
+  );
 }
 
-/**
- * Multiple texts → multiple vectors.
- */
-export async function embedManyWithLmStudio(
-  texts: string[],
-  modelKey = DEFAULT_EMBED_MODEL
-): Promise<number[][]> {
-  const client = getLMStudioClient();
-
-  const model = await client.embedding.model(modelKey);
-  const embeddings: number[][] = [];
-
-  for (const text of texts) {
-    const { embedding } = await model.embed(text);
-    embeddings.push(embedding);
+export const handleTransaction = ({
+  transaction,
+  editorRef,
+  onSaveContent,
+}: {
+  transaction: Transaction;
+  editorRef: MutableRefObject<EditorView | null>;
+  onSaveContent: (updatedContent: string, debounce: boolean) => void;
+}) => {
+  if (!editorRef || !editorRef.current) {
+    return;
   }
 
-  return embeddings;
-}
+  const newState = editorRef.current.state.apply(transaction);
+  editorRef.current.updateState(newState);
+
+  if (transaction.docChanged && !transaction.getMeta("no-save")) {
+    const updatedContent = buildContentFromDocument(newState.doc);
+
+    if (transaction.getMeta("no-debounce")) {
+      onSaveContent(updatedContent, false);
+    } else {
+      onSaveContent(updatedContent, true);
+    }
+  }
+};
 ```
 
-lib/lmstudio/models.ts
+lib/editor/diff.js
 ```
-// lib/lmstudio/models.ts
-import type { LLMLoadModelConfig } from "@lmstudio/sdk";
-import { getLMStudioClient } from "./client";
+// Modified from https://github.com/hamflx/prosemirror-diff/blob/master/src/diff.js
 
-/**
- * Get whichever LLM model is already loaded in LM Studio.
- * Equivalent to: client.llm.model()
- */
-export async function getCurrentLlm() {
-  const client = getLMStudioClient();
-  return client.llm.model();
-}
+import { diff_match_patch } from "diff-match-patch";
+import { Fragment, Node } from "prosemirror-model";
 
-/**
- * Get or load a specific model by key.
- * Equivalent to: client.llm.model("model-key", config?)
- */
-export async function getOrLoadLlm(
-  modelKey: string,
-  config?: LLMLoadModelConfig
-) {
-  const client = getLMStudioClient();
-  return client.llm.model(modelKey, config);
-}
+export const DiffType = {
+  Unchanged: 0,
+  Deleted: -1,
+  Inserted: 1,
+};
 
-/**
- * Force-load a new instance of a model, even if another instance exists.
- * Equivalent to: client.llm.load("model-key", config?)
- */
-export async function loadLlmInstance(
-  modelKey: string,
-  config?: LLMLoadModelConfig
-) {
-  const client = getLMStudioClient();
-  return client.llm.load(modelKey, config);
-}
+export const patchDocumentNode = (schema, oldNode, newNode) => {
+  assertNodeTypeEqual(oldNode, newNode);
 
-/**
- * Load a model instance with a TTL (idle auto-unload).
- * Equivalent to: client.llm.load("model-key", { ttl })
- */
-export async function loadLlmWithTtl(
-  modelKey: string,
-  ttlSeconds: number,
-  extra?: Omit<LLMLoadModelConfig, "ttl">
-) {
-  const client = getLMStudioClient();
-  return client.llm.load(modelKey, { ...extra, ttl: ttlSeconds });
-}
+  const finalLeftChildren = [];
+  const finalRightChildren = [];
 
-/**
- * Unload a model from memory using its key.
- * Equivalent to:
- *   const model = await client.llm.model("model-key");
- *   await model.unload();
- */
-export async function unloadLlmByKey(modelKey: string) {
-  const client = getLMStudioClient();
-  const model = await client.llm.model(modelKey);
-  await model.unload();
-}
-```
+  const oldChildren = normalizeNodeContent(oldNode);
+  const newChildren = normalizeNodeContent(newNode);
+  const oldChildLen = oldChildren.length;
+  const newChildLen = newChildren.length;
+  const minChildLen = Math.min(oldChildLen, newChildLen);
 
-lib/lmstudio/route.ts
-```
-// app/api/lmstudio/load/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { loadLlmWithTtl } from "@/lib/lmstudio/models";
+  let left = 0;
+  let right = 0;
 
-export async function POST(req: NextRequest) {
-  const { modelKey, ttlSeconds } = await req.json();
+  for (; left < minChildLen; left++) {
+    const oldChild = oldChildren[left];
+    const newChild = newChildren[left];
+    if (!isNodeEqual(oldChild, newChild)) {
+      break;
+    }
+    finalLeftChildren.push(...ensureArray(oldChild));
+  }
 
-  const model = await loadLlmWithTtl(
-    modelKey ?? "qwen/qwen3-4b-2507",
-    ttlSeconds ?? 300
+  for (; right + left + 1 < minChildLen; right++) {
+    const oldChild = oldChildren[oldChildLen - right - 1];
+    const newChild = newChildren[newChildLen - right - 1];
+    if (!isNodeEqual(oldChild, newChild)) {
+      break;
+    }
+    finalRightChildren.unshift(...ensureArray(oldChild));
+  }
+
+  const diffOldChildren = oldChildren.slice(left, oldChildLen - right);
+  const diffNewChildren = newChildren.slice(left, newChildLen - right);
+
+  if (diffOldChildren.length && diffNewChildren.length) {
+    const matchedNodes = matchNodes(
+      schema,
+      diffOldChildren,
+      diffNewChildren
+    ).sort((a, b) => b.count - a.count);
+    const bestMatch = matchedNodes[0];
+    if (bestMatch) {
+      const { oldStartIndex, newStartIndex, oldEndIndex, newEndIndex } =
+        bestMatch;
+      const oldBeforeMatchChildren = diffOldChildren.slice(0, oldStartIndex);
+      const newBeforeMatchChildren = diffNewChildren.slice(0, newStartIndex);
+
+      finalLeftChildren.push(
+        ...patchRemainNodes(
+          schema,
+          oldBeforeMatchChildren,
+          newBeforeMatchChildren
+        )
+      );
+      finalLeftChildren.push(
+        ...diffOldChildren.slice(oldStartIndex, oldEndIndex)
+      );
+
+      const oldAfterMatchChildren = diffOldChildren.slice(oldEndIndex);
+      const newAfterMatchChildren = diffNewChildren.slice(newEndIndex);
+
+      finalRightChildren.unshift(
+        ...patchRemainNodes(
+          schema,
+          oldAfterMatchChildren,
+          newAfterMatchChildren
+        )
+      );
+    } else {
+      finalLeftChildren.push(
+        ...patchRemainNodes(schema, diffOldChildren, diffNewChildren)
+      );
+    }
+  } else {
+    finalLeftChildren.push(
+      ...patchRemainNodes(schema, diffOldChildren, diffNewChildren)
+    );
+  }
+
+  return createNewNode(oldNode, [...finalLeftChildren, ...finalRightChildren]);
+};
+
+const matchNodes = (_schema, oldChildren, newChildren) => {
+  const matches = [];
+  for (
+    let oldStartIndex = 0;
+    oldStartIndex < oldChildren.length;
+    oldStartIndex++
+  ) {
+    const oldStartNode = oldChildren[oldStartIndex];
+    const newStartIndex = findMatchNode(newChildren, oldStartNode);
+
+    if (newStartIndex !== -1) {
+      let oldEndIndex = oldStartIndex + 1;
+      let newEndIndex = newStartIndex + 1;
+      for (
+        ;
+        oldEndIndex < oldChildren.length && newEndIndex < newChildren.length;
+        oldEndIndex++, newEndIndex++
+      ) {
+        const oldEndNode = oldChildren[oldEndIndex];
+        if (!isNodeEqual(newChildren[newEndIndex], oldEndNode)) {
+          break;
+        }
+      }
+      matches.push({
+        oldStartIndex,
+        newStartIndex,
+        oldEndIndex,
+        newEndIndex,
+        count: newEndIndex - newStartIndex,
+      });
+    }
+  }
+  return matches;
+};
+
+const findMatchNode = (children, node, startIndex = 0) => {
+  for (let i = startIndex; i < children.length; i++) {
+    if (isNodeEqual(children[i], node)) {
+      return i;
+    }
+  }
+  return -1;
+};
+
+const patchRemainNodes = (schema, oldChildren, newChildren) => {
+  const finalLeftChildren = [];
+  const finalRightChildren = [];
+  const oldChildLen = oldChildren.length;
+  const newChildLen = newChildren.length;
+  let left = 0;
+  let right = 0;
+  while (oldChildLen - left - right > 0 && newChildLen - left - right > 0) {
+    const leftOldNode = oldChildren[left];
+    const leftNewNode = newChildren[left];
+    const rightOldNode = oldChildren[oldChildLen - right - 1];
+    const rightNewNode = newChildren[newChildLen - right - 1];
+    let updateLeft =
+      !isTextNode(leftOldNode) && matchNodeType(leftOldNode, leftNewNode);
+    let updateRight =
+      !isTextNode(rightOldNode) && matchNodeType(rightOldNode, rightNewNode);
+    if (Array.isArray(leftOldNode) && Array.isArray(leftNewNode)) {
+      finalLeftChildren.push(
+        ...patchTextNodes(schema, leftOldNode, leftNewNode)
+      );
+      left += 1;
+      continue;
+    }
+
+    if (updateLeft && updateRight) {
+      const equalityLeft = computeChildEqualityFactor(leftOldNode, leftNewNode);
+      const equalityRight = computeChildEqualityFactor(
+        rightOldNode,
+        rightNewNode
+      );
+      if (equalityLeft < equalityRight) {
+        updateLeft = false;
+      } else {
+        updateRight = false;
+      }
+    }
+    if (updateLeft) {
+      finalLeftChildren.push(
+        patchDocumentNode(schema, leftOldNode, leftNewNode)
+      );
+      left += 1;
+    } else if (updateRight) {
+      finalRightChildren.unshift(
+        patchDocumentNode(schema, rightOldNode, rightNewNode)
+      );
+      right += 1;
+    } else {
+      // Delete and insert
+      finalLeftChildren.push(
+        createDiffNode(schema, leftOldNode, DiffType.Deleted)
+      );
+      finalLeftChildren.push(
+        createDiffNode(schema, leftNewNode, DiffType.Inserted)
+      );
+      left += 1;
+    }
+  }
+
+  const deleteNodeLen = oldChildLen - left - right;
+  const insertNodeLen = newChildLen - left - right;
+  if (deleteNodeLen) {
+    finalLeftChildren.push(
+      ...oldChildren
+        .slice(left, left + deleteNodeLen)
+        .flat()
+        .map((node) => createDiffNode(schema, node, DiffType.Deleted))
+    );
+  }
+
+  if (insertNodeLen) {
+    finalRightChildren.unshift(
+      ...newChildren
+        .slice(left, left + insertNodeLen)
+        .flat()
+        .map((node) => createDiffNode(schema, node, DiffType.Inserted))
+    );
+  }
+
+  return [...finalLeftChildren, ...finalRightChildren];
+};
+
+// Updated function to perform sentence-level diffs
+export const patchTextNodes = (schema, oldNode, newNode) => {
+  const dmp = new diff_match_patch();
+
+  // Concatenate the text from the text nodes
+  const oldText = oldNode.map((n) => getNodeText(n)).join("");
+  const newText = newNode.map((n) => getNodeText(n)).join("");
+
+  // Tokenize the text into sentences
+  const oldSentences = tokenizeSentences(oldText);
+  const newSentences = tokenizeSentences(newText);
+
+  // Map sentences to unique characters
+  const { chars1, chars2, lineArray } = sentencesToChars(
+    oldSentences,
+    newSentences
   );
 
-  return NextResponse.json({
-    modelKey,
-    identifier: model.identifier,
+  // Perform the diff
+  let diffs = dmp.diff_main(chars1, chars2, false);
+
+  // Convert back to sentences
+  diffs = diffs.map(([type, text]) => {
+    const sentences = text
+      .split("")
+      .map((char) => lineArray[char.charCodeAt(0)]);
+    return [type, sentences];
+  });
+
+  // Map diffs to nodes
+  const res = diffs.flatMap(([type, sentences]) => {
+    return sentences.map((sentence) => {
+      const node = createTextNode(
+        schema,
+        sentence,
+        type !== DiffType.Unchanged ? [createDiffMark(schema, type)] : []
+      );
+      return node;
+    });
+  });
+
+  return res;
+};
+
+// Function to tokenize text into sentences
+const tokenizeSentences = (text) => {
+  return text.match(/[^.!?]+[.!?]*\s*/g) || [];
+};
+
+// Function to map sentences to unique characters
+const sentencesToChars = (oldSentences, newSentences) => {
+  const lineArray = [];
+  const lineHash = {};
+  let lineStart = 0;
+
+  const chars1 = oldSentences
+    .map((sentence) => {
+      const line = sentence;
+      if (line in lineHash) {
+        return String.fromCharCode(lineHash[line]);
+      }
+      lineHash[line] = lineStart;
+      lineArray[lineStart] = line;
+      lineStart++;
+      return String.fromCharCode(lineHash[line]);
+    })
+    .join("");
+
+  const chars2 = newSentences
+    .map((sentence) => {
+      const line = sentence;
+      if (line in lineHash) {
+        return String.fromCharCode(lineHash[line]);
+      }
+      lineHash[line] = lineStart;
+      lineArray[lineStart] = line;
+      lineStart++;
+      return String.fromCharCode(lineHash[line]);
+    })
+    .join("");
+
+  return { chars1, chars2, lineArray };
+};
+
+export const computeChildEqualityFactor = (_node1, _node2) => {
+  return 0;
+};
+
+export const assertNodeTypeEqual = (node1, node2) => {
+  if (getNodeProperty(node1, "type") !== getNodeProperty(node2, "type")) {
+    throw new Error(`node type not equal: ${node1.type} !== ${node2.type}`);
+  }
+};
+
+export const ensureArray = (value) => {
+  return Array.isArray(value) ? value : [value];
+};
+
+export const isNodeEqual = (node1, node2) => {
+  const isNode1Array = Array.isArray(node1);
+  const isNode2Array = Array.isArray(node2);
+  if (isNode1Array !== isNode2Array) {
+    return false;
+  }
+  if (isNode1Array) {
+    return (
+      node1.length === node2.length &&
+      node1.every((node, index) => isNodeEqual(node, node2[index]))
+    );
+  }
+
+  const type1 = getNodeProperty(node1, "type");
+  const type2 = getNodeProperty(node2, "type");
+  if (type1 !== type2) {
+    return false;
+  }
+  if (isTextNode(node1)) {
+    const text1 = getNodeProperty(node1, "text");
+    const text2 = getNodeProperty(node2, "text");
+    if (text1 !== text2) {
+      return false;
+    }
+  }
+  const attrs1 = getNodeAttributes(node1);
+  const attrs2 = getNodeAttributes(node2);
+  const attrs = [...new Set([...Object.keys(attrs1), ...Object.keys(attrs2)])];
+  for (const attr of attrs) {
+    if (attrs1[attr] !== attrs2[attr]) {
+      return false;
+    }
+  }
+  const marks1 = getNodeMarks(node1);
+  const marks2 = getNodeMarks(node2);
+  if (marks1.length !== marks2.length) {
+    return false;
+  }
+  for (let i = 0; i < marks1.length; i++) {
+    if (!isNodeEqual(marks1[i], marks2[i])) {
+      return false;
+    }
+  }
+  const children1 = getNodeChildren(node1);
+  const children2 = getNodeChildren(node2);
+  if (children1.length !== children2.length) {
+    return false;
+  }
+  for (let i = 0; i < children1.length; i++) {
+    if (!isNodeEqual(children1[i], children2[i])) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const normalizeNodeContent = (node) => {
+  const content = getNodeChildren(node) ?? [];
+  const res = [];
+  for (let i = 0; i < content.length; i++) {
+    const child = content[i];
+    if (isTextNode(child)) {
+      const textNodes = [];
+      for (
+        let textNode = content[i];
+        i < content.length && isTextNode(textNode);
+        textNode = content[++i]
+      ) {
+        textNodes.push(textNode);
+      }
+      i--;
+      res.push(textNodes);
+    } else {
+      res.push(child);
+    }
+  }
+  return res;
+};
+
+export const getNodeProperty = (node, property) => {
+  if (property === "type") {
+    return node.type?.name;
+  }
+  return node[property];
+};
+
+export const getNodeAttribute = (node, attribute) =>
+  node.attrs ? node.attrs[attribute] : undefined;
+
+export const getNodeAttributes = (node) => (node.attrs ? node.attrs : {});
+
+export const getNodeMarks = (node) => node.marks ?? [];
+
+export const getNodeChildren = (node) => node.content?.content ?? [];
+
+export const getNodeText = (node) => node.text;
+
+export const isTextNode = (node) => node.type?.name === "text";
+
+export const matchNodeType = (node1, node2) =>
+  node1.type?.name === node2.type?.name ||
+  (Array.isArray(node1) && Array.isArray(node2));
+
+export const createNewNode = (oldNode, children) => {
+  if (!oldNode.type) {
+    throw new Error("oldNode.type is undefined");
+  }
+  return new Node(
+    oldNode.type,
+    oldNode.attrs,
+    Fragment.fromArray(children),
+    oldNode.marks
+  );
+};
+
+export const createDiffNode = (schema, node, type) => {
+  return mapDocumentNode(node, (currentNode) => {
+    if (isTextNode(currentNode)) {
+      return createTextNode(schema, getNodeText(currentNode), [
+        ...(currentNode.marks || []),
+        createDiffMark(schema, type),
+      ]);
+    }
+    return currentNode;
+  });
+};
+
+function mapDocumentNode(node, mapper) {
+  const copy = node.copy(
+    Fragment.from(
+      node.content.content
+        .map((currentNode) => mapDocumentNode(currentNode, mapper))
+        .filter((n) => n)
+    )
+  );
+  return mapper(copy) || copy;
+}
+
+export const createDiffMark = (schema, type) => {
+  if (type === DiffType.Inserted) {
+    return schema.mark("diffMark", { type });
+  }
+  if (type === DiffType.Deleted) {
+    return schema.mark("diffMark", { type });
+  }
+  throw new Error("type is not valid");
+};
+
+export const createTextNode = (schema, content, marks = []) => {
+  return schema.text(content, marks);
+};
+
+export const diffEditor = (schema, oldDoc, newDoc) => {
+  const oldNode = Node.fromJSON(schema, oldDoc);
+  const newNode = Node.fromJSON(schema, newDoc);
+  return patchDocumentNode(schema, oldNode, newNode);
+};
+```
+
+lib/editor/functions.tsx
+```
+"use client";
+
+import { defaultMarkdownSerializer } from "prosemirror-markdown";
+import { DOMParser, type Node } from "prosemirror-model";
+import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
+import { renderToString } from "react-dom/server";
+
+import { Response } from "@/components/elements/response";
+
+import { documentSchema } from "./config";
+import { createSuggestionWidget, type UISuggestion } from "./suggestions";
+
+export const buildDocumentFromContent = (content: string) => {
+  const parser = DOMParser.fromSchema(documentSchema);
+  const stringFromMarkdown = renderToString(<Response>{content}</Response>);
+  const tempContainer = document.createElement("div");
+  tempContainer.innerHTML = stringFromMarkdown;
+  return parser.parse(tempContainer);
+};
+
+export const buildContentFromDocument = (document: Node) => {
+  return defaultMarkdownSerializer.serialize(document);
+};
+
+export const createDecorations = (
+  suggestions: UISuggestion[],
+  view: EditorView
+) => {
+  const decorations: Decoration[] = [];
+
+  for (const suggestion of suggestions) {
+    decorations.push(
+      Decoration.inline(
+        suggestion.selectionStart,
+        suggestion.selectionEnd,
+        {
+          class: "suggestion-highlight",
+        },
+        {
+          suggestionId: suggestion.id,
+          type: "highlight",
+        }
+      )
+    );
+
+    decorations.push(
+      Decoration.widget(
+        suggestion.selectionStart,
+        (currentView) => {
+          const { dom } = createSuggestionWidget(suggestion, currentView);
+          return dom;
+        },
+        {
+          suggestionId: suggestion.id,
+          type: "widget",
+        }
+      )
+    );
+  }
+
+  return DecorationSet.create(view.state.doc, decorations);
+};
+```
+
+lib/editor/react-renderer.tsx
+```
+import { createRoot } from "react-dom/client";
+
+// biome-ignore lint/complexity/noStaticOnlyClass: "Needs to be static"
+export class ReactRenderer {
+  static render(component: React.ReactElement, dom: HTMLElement) {
+    const root = createRoot(dom);
+    root.render(component);
+
+    return {
+      destroy: () => root.unmount(),
+    };
+  }
+}
+```
+
+lib/editor/suggestions.tsx
+```
+import type { Node } from "prosemirror-model";
+import { Plugin, PluginKey } from "prosemirror-state";
+import {
+  type Decoration,
+  DecorationSet,
+  type EditorView,
+} from "prosemirror-view";
+import { createRoot } from "react-dom/client";
+import type { ArtifactKind } from "@/components/artifact";
+import { Suggestion as PreviewSuggestion } from "@/components/suggestion";
+import type { Suggestion } from "@/lib/db/schema";
+
+export interface UISuggestion extends Suggestion {
+  selectionStart: number;
+  selectionEnd: number;
+}
+
+type Position = {
+  start: number;
+  end: number;
+};
+
+function findPositionsInDoc(doc: Node, searchText: string): Position | null {
+  let positions: { start: number; end: number } | null = null;
+
+  doc.nodesBetween(0, doc.content.size, (node, pos) => {
+    if (node.isText && node.text) {
+      const index = node.text.indexOf(searchText);
+
+      if (index !== -1) {
+        positions = {
+          start: pos + index,
+          end: pos + index + searchText.length,
+        };
+
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  return positions;
+}
+
+export function projectWithPositions(
+  doc: Node,
+  suggestions: Suggestion[]
+): UISuggestion[] {
+  return suggestions.map((suggestion) => {
+    const positions = findPositionsInDoc(doc, suggestion.originalText);
+
+    if (!positions) {
+      return {
+        ...suggestion,
+        selectionStart: 0,
+        selectionEnd: 0,
+      };
+    }
+
+    return {
+      ...suggestion,
+      selectionStart: positions.start,
+      selectionEnd: positions.end,
+    };
   });
 }
-```
 
-lib/lmstudio/unload.ts
-```
-// app/api/lmstudio/unload/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { unloadLlmByKey } from "@/lib/lmstudio/models";
+export function createSuggestionWidget(
+  suggestion: UISuggestion,
+  view: EditorView,
+  artifactKind: ArtifactKind = "text"
+): { dom: HTMLElement; destroy: () => void } {
+  const dom = document.createElement("span");
+  const root = createRoot(dom);
 
-export async function POST(req: NextRequest) {
-  const { modelKey } = await req.json();
+  dom.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    view.dom.blur();
+  });
 
-  await unloadLlmByKey(modelKey);
+  const onApply = () => {
+    const { state, dispatch } = view;
 
-  return NextResponse.json({ ok: true, modelKey });
+    const decorationTransaction = state.tr;
+    const currentState = suggestionsPluginKey.getState(state);
+    const currentDecorations = currentState?.decorations;
+
+    if (currentDecorations) {
+      const newDecorations = DecorationSet.create(
+        state.doc,
+        currentDecorations.find().filter((decoration: Decoration) => {
+          return decoration.spec.suggestionId !== suggestion.id;
+        })
+      );
+
+      decorationTransaction.setMeta(suggestionsPluginKey, {
+        decorations: newDecorations,
+        selected: null,
+      });
+      dispatch(decorationTransaction);
+    }
+
+    const textTransaction = view.state.tr.replaceWith(
+      suggestion.selectionStart,
+      suggestion.selectionEnd,
+      state.schema.text(suggestion.suggestedText)
+    );
+
+    textTransaction.setMeta("no-debounce", true);
+
+    dispatch(textTransaction);
+  };
+
+  root.render(
+    <PreviewSuggestion
+      artifactKind={artifactKind}
+      onApply={onApply}
+      suggestion={suggestion}
+    />
+  );
+
+  return {
+    dom,
+    destroy: () => {
+      // Wrapping unmount in setTimeout to avoid synchronous unmounting during render
+      setTimeout(() => {
+        root.unmount();
+      }, 0);
+    },
+  };
 }
+
+export const suggestionsPluginKey = new PluginKey("suggestions");
+export const suggestionsPlugin = new Plugin({
+  key: suggestionsPluginKey,
+  state: {
+    init() {
+      return { decorations: DecorationSet.empty, selected: null };
+    },
+    apply(tr, state) {
+      const newDecorations = tr.getMeta(suggestionsPluginKey);
+      if (newDecorations) {
+        return newDecorations;
+      }
+
+      return {
+        decorations: state.decorations.map(tr.mapping, tr.doc),
+        selected: state.selected,
+      };
+    },
+  },
+  props: {
+    decorations(state) {
+      return this.getState(state)?.decorations ?? DecorationSet.empty;
+    },
+  },
+});
 ```
 
 lib/ai/tools/create-document.ts
