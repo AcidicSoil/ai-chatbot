@@ -6,6 +6,7 @@ import { DataStreamHandler } from "@/components/data-stream-handler";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "../(auth)/auth";
+import { ReactGrabClient } from "@/components/react-grab-client";
 
 export default function Page() {
   return (
@@ -40,6 +41,7 @@ async function NewChatPage() {
           key={id}
         />
         <DataStreamHandler />
+        <ReactGrabClient />
       </>
     );
   }
@@ -56,6 +58,7 @@ async function NewChatPage() {
         key={id}
       />
       <DataStreamHandler />
+      <ReactGrabClient />
     </>
   );
 }

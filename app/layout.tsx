@@ -68,13 +68,6 @@ export default function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
-        {process.env.NODE_ENV === "development" && (
-          <Script
-            src="//unpkg.com/react-grab/dist/index.global.js"
-            crossOrigin="anonymous"
-            strategy="beforeInteractive"
-          />
-        )}
       </head>
       <body className="antialiased">
         <ThemeProvider
