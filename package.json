@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.15",
+    "@ai-sdk/huggingface": "^0.0.11",
     "@ai-sdk/openai-compatible": "^1.0.28",
     "@ai-sdk/provider": "2.0.0",
     "@ai-sdk/react": "2.0.26",
@@ -51,6 +52,7 @@
     "@vercel/otel": "^1.12.0",
     "@xyflow/react": "^12.9.3",
     "ai": "5.0.26",
+    "ai-sdk-provider-gemini-cli": "^1.4.0",
     "bcrypt-ts": "^5.0.2",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
