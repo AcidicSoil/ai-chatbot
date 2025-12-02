@@ -1,34 +1,50 @@
 import { gateway } from "@ai-sdk/gateway";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
+import { createGeminiProvider } from "ai-sdk-provider-gemini-cli";
 import { isTestEnvironment } from "../constants";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { geminiCli } from "@ai-sdk/community-providers-gemini-cli";
-import { huggingface } from "@ai-sdk/providers-huggingface";
-import { LMStudioClient } from "@lmstudio/sdk";
 
 const lmstudio = createOpenAICompatible({
   name: "lmstudio",
   baseURL: process.env.LMSTUDIO_BASE_URL ?? "http://localhost:1234/v1",
 });
 
-// Default to OAuth via local gemini CLI for dev, with optional API key mode
-const gemini = createGeminiProvider({
-  authType:
-    process.env.GEMINI_AUTH_TYPE === "api-key" ||
-    process.env.GEMINI_AUTH_TYPE === "gemini-api-key"
-      ? (process.env.GEMINI_AUTH_TYPE as "api-key" | "gemini-api-key")
-      : "oauth-personal",
-  apiKey:
-    process.env.GEMINI_AUTH_TYPE === "api-key" ||
-    process.env.GEMINI_AUTH_TYPE === "gemini-api-key"
-      ? process.env.GEMINI_API_KEY
-      : undefined,
-});
+const LMSTUDIO_CHAT_MODEL_ID =
+  process.env.LMSTUDIO_CHAT_MODEL_ID ??
+  process.env.LMSTUDIO_MODEL_ID ??
+  "llama-3.2-1b";
 
+function resolveGeminiProvider() {
+  const authType = process.env.GEMINI_AUTH_TYPE?.toLowerCase();
+
+  if (authType === "api-key" || authType === "gemini-api-key") {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error(
+        "GEMINI_AUTH_TYPE is set to an API key mode but GEMINI_API_KEY is missing."
+      );
+    }
+
+    return createGeminiProvider({
+      authType: authType === "api-key" ? "api-key" : "gemini-api-key",
+      apiKey: process.env.GEMINI_API_KEY,
+    });
+  }
+
+  if (authType === "oauth" || authType === "oauth-personal" || !authType) {
+    return createGeminiProvider({ authType: "oauth-personal" });
+  }
+
+  console.warn(
+    `[Gemini] Unsupported GEMINI_AUTH_TYPE "${authType}". Falling back to oauth-personal.`
+  );
+  return createGeminiProvider({ authType: "oauth-personal" });
+}
+
+const gemini = resolveGeminiProvider();
 
 export const myProvider = isTestEnvironment
   ? (() => {
@@ -56,10 +72,15 @@ export const myProvider = isTestEnvironment
         }),
         "title-model": gateway.languageModel("xai/grok-2-1212"),
         "artifact-model": gateway.languageModel("xai/grok-2-1212"),
-        // LM Studio via OpenAI-compatible API
-        "lmstudio-chat": lmstudio("llama-3.2-1b"),
+        // NEW: LM Studio chat model
+        //
+        // Make sure you have this model downloaded in LM Studio and that
+        // the ID matches what LM Studio exposes (e.g. "llama-3.2-1b").
+        "lmstudio-chat": lmstudio(LMSTUDIO_CHAT_MODEL_ID),
 
-        // Gemini via CLI provider
+        // NEW: Gemini chat model via ai-sdk-provider-gemini-cli
+        //
+        // This ID must match what you configure in the UI (see models.ts).
         "gemini-2.5-pro": gemini("gemini-2.5-pro"),
       },
     });

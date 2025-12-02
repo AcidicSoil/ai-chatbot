@@ -63,3 +63,31 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/
+
+
+# START Ruler Generated Files
+/.codex/config.toml
+/.codex/config.toml.bak
+/AGENTS.md
+/AGENTS.md.bak
+/app/(auth)/.codex/config.toml
+/app/(auth)/.codex/config.toml.bak
+/app/(auth)/AGENTS.md
+/app/(auth)/AGENTS.md.bak
+/app/(chat)/.codex/config.toml
+/app/(chat)/.codex/config.toml.bak
+/app/(chat)/AGENTS.md
+/app/(chat)/AGENTS.md.bak
+/artifacts/.codex/config.toml
+/artifacts/.codex/config.toml.bak
+/artifacts/AGENTS.md
+/artifacts/AGENTS.md.bak
+/lib/ai/.codex/config.toml
+/lib/ai/.codex/config.toml.bak
+/lib/ai/AGENTS.md
+/lib/ai/AGENTS.md.bak
+/lib/db/.codex/config.toml
+/lib/db/.codex/config.toml.bak
+/lib/db/AGENTS.md
+/lib/db/AGENTS.md.bak
+# END Ruler Generated Files

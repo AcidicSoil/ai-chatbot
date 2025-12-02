@@ -1,4 +1,7 @@
-export const DEFAULT_CHAT_MODEL: string = "chat-model";
+// path: lib/ai/models.ts
+
+// 1. Set LM Studio as the default for new chats
+export const DEFAULT_CHAT_MODEL: string = "lmstudio-chat";
 
 export type ChatModel = {
   id: string;
@@ -7,6 +10,11 @@ export type ChatModel = {
 };
 
 export const chatModels: ChatModel[] = [
+  {
+    id: "lmstudio-chat",
+    name: "LM Studio (Local)",
+    description: "Local model running via LM Studio (localhost:1234)",
+  },
   {
     id: "chat-model",
     name: "Grok Vision",
@@ -19,20 +27,8 @@ export const chatModels: ChatModel[] = [
       "Uses advanced chain-of-thought reasoning for complex problems",
   },
   {
-    id: "lmstudio-chat",
-    name: "LM Studio – Local",
-    description:
-      "Local model served via LM Studio OpenAI-compatible API (http://localhost:1234/v1 by default)",
-  },
-  {
     id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro (CLI)",
-    description:
-      "Google Gemini via ai-sdk-provider-gemini-cli and Gemini CLI / API key",
-  },
-  {
-    id: "gemini-2.5-flash",
-    name: "Gemini 2.5 flash (CLI)",
     description:
       "Google Gemini via ai-sdk-provider-gemini-cli and Gemini CLI / API key",
   },
