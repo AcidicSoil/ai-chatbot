@@ -16,7 +16,8 @@
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
-    "code": "codefetch --include-dir src,lib --exclude-dir .ruler,.cursor --exclude-files \"*.test.ts\", -o app_lib.md"
+    "code": "codefetch --include-dir app,lib --exclude-dir .ruler,.cursor --exclude-files \"*.test.ts\", -o app_lib.md",
+    "code:all": "codefetch -t 5 --include-dir app,lib,hooks,artifacts --exclude-dir --exclude-files \"*.test.ts\", -o all.md"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.15",
@@ -33,6 +34,7 @@
     "@icons-pack/react-simple-icons": "^13.7.0",
     "@lmstudio/sdk": "^1.5.0",
     "@neondatabase/serverless": "^1.0.2",
+    "@openrouter/ai-sdk-provider": "^1.2.8",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.200.0",
     "@radix-ui/react-collapsible": "^1.1.12",
@@ -54,6 +56,7 @@
     "@vercel/otel": "^1.12.0",
     "@xyflow/react": "^12.9.3",
     "ai": "5.0.26",
+    "ai-sdk-provider-chatgpt-oauth": "^1.1.0",
     "ai-sdk-provider-gemini-cli": "^1.4.0",
     "bcrypt-ts": "^5.0.2",
     "class-variance-authority": "^0.7.1",
@@ -76,6 +79,8 @@
     "next": "16.0.5",
     "next-auth": "5.0.0-beta.25",
     "next-themes": "^0.3.0",
+    "node-pty": "^1.0.0",
+    "ollama-ai-provider-v2": "^1.5.5",
     "orderedmap": "^2.1.1",
     "papaparse": "^5.5.2",
     "postgres": "^3.4.4",
@@ -120,6 +125,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "baseline-browser-mapping": "^2.8.32",
     "codefetch": "^2.2.0",
     "drizzle-kit": "^0.25.0",
     "postcss": "^8",

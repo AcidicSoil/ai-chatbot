@@ -1,0 +1,32 @@
+ WARN  Issues with peer dependencies found
+.
+├─┬ @vercel/otel 1.14.0
+│ ├── ✕ missing peer @opentelemetry/resources@">=1.19.0 <2.0.0"
+│ ├── ✕ missing peer @opentelemetry/sdk-metrics@">=1.19.0 <2.0.0"
+│ ├── ✕ missing peer @opentelemetry/sdk-trace-base@">=1.19.0 <2.0.0"
+│ ├── ✕ unmet peer @opentelemetry/api-logs@">=0.46.0 <0.200.0": found 0.200.0
+│ ├── ✕ unmet peer @opentelemetry/instrumentation@">=0.46.0 <0.200.0": found 0.203.0
+│ └── ✕ unmet peer @opentelemetry/sdk-logs@">=0.46.0 <0.200.0": found 0.203.0
+├─┬ ai-sdk-provider-gemini-cli 1.4.0
+│ └─┬ @google/gemini-cli-core 0.17.1
+│   ├─┬ @google-cloud/opentelemetry-cloud-monitoring-exporter 0.21.0
+│   │ ├── ✕ missing peer @opentelemetry/resources@^2.0.0
+│   │ ├── ✕ missing peer @opentelemetry/sdk-metrics@^2.0.0
+│   │ └─┬ @google-cloud/opentelemetry-resource-util 3.0.0
+│   │   └── ✕ missing peer @opentelemetry/resources@^2.0.0
+│   └─┬ @google-cloud/opentelemetry-cloud-trace-exporter 3.0.0
+│     ├── ✕ missing peer @opentelemetry/resources@^2.0.0
+│     ├── ✕ missing peer @opentelemetry/resources@^2.0.0
+│     └── ✕ missing peer @opentelemetry/sdk-trace-base@^2.0.0
+├─┬ next 16.0.5
+│ └── ✕ unmet peer @playwright/test@^1.51.1: found 1.51.0
+├─┬ next-auth 5.0.0-beta.25
+│ └── ✕ unmet peer next@"^14.0.0-0 || ^15.0.0-0": found 16.0.5
+├─┬ ollama-ai-provider-v2 1.5.5
+│ └── ✕ unmet peer zod@^4.0.16: found 3.25.76
+└─┬ next-themes 0.3.0
+  ├── ✕ unmet peer react@"^16.8 || ^17 || ^18": found 19.0.0-rc-45804af1-20241021
+  └── ✕ unmet peer react-dom@"^16.8 || ^17 || ^18": found 19.0.0-rc-45804af1-20241021
+✕ Conflicting peer dependencies:
+  @opentelemetry/resources       @opentelemetry/sdk-trace-base
+  @opentelemetry/sdk-metrics
