@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
@@ -22,8 +22,7 @@ export function LmStudioModelSettingsButton() {
   const { preferredModels, addPreferredModel, removePreferredModel } =
     usePreferredLmStudioModels();
   const { canUseLmStudio, lmStudio } = useChatModels({ userType });
-  const { snapshot, downloaded, loadModel, unloadModel, isLoading } =
-    lmStudio;
+  const { snapshot, downloaded, loadModel, unloadModel, isLoading } = lmStudio;
   const [isOpen, setIsOpen] = useState(false);
   const [manualModelKey, setManualModelKey] = useState("");
 
@@ -109,131 +108,132 @@ export function LmStudioModelSettingsButton() {
           </DialogDescription>
         </DialogHeader>
 
-        {!snapshot?.isAvailable && !isLoading && (
-          <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-            LM Studio appears to be offline. Start the LM Studio desktop app to
-            load local models.
-          </p>
-        )}
-
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-sm">Preferred models</h3>
-            <span className="text-muted-foreground text-xs">
-              Stored in your browser
-            </span>
-          </div>
-          {preferredEntries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              You haven’t added any preferred models yet.
+        {/* Scrollable Container for Lists */}
+        <div className="max-h-[300px] overflow-y-auto pr-2 space-y-4">
+          {!snapshot?.isAvailable && !isLoading && (
+            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+              LM Studio appears to be offline. Start the LM Studio desktop app
+              to load local models.
             </p>
-          ) : (
-            <ul className="space-y-2">
-              {preferredEntries.map((entry) => (
-                <li
-                  className="rounded-md border px-3 py-2 text-sm"
-                  key={entry.modelKey}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {entry.displayName}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {entry.modelKey}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {entry.isLoaded ? (
+          )}
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-sm">Preferred models</h3>
+              <span className="text-muted-foreground text-xs">
+                Stored in your browser
+              </span>
+            </div>
+            {preferredEntries.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                You haven’t added any preferred models yet.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {preferredEntries.map((entry) => (
+                  <li
+                    className="rounded-md border px-3 py-2 text-sm"
+                    key={entry.modelKey}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{entry.displayName}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {entry.modelKey}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {entry.isLoaded ? (
+                          <Button
+                            onClick={() => handleUnloadModel(entry.identifier)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            Unload
+                          </Button>
+                        ) : (
+                          <Button
+                            disabled={!entry.isDownloaded}
+                            onClick={() => handleLoadModel(entry.modelKey)}
+                            size="sm"
+                          >
+                            Load
+                          </Button>
+                        )}
                         <Button
-                          onClick={() => handleUnloadModel(entry.identifier)}
+                          onClick={() => removePreferredModel(entry.modelKey)}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-sm">Downloaded models</h3>
+              <Button
+                onClick={() => lmStudio.refresh()}
+                size="sm"
+                variant="outline"
+              >
+                Refresh
+              </Button>
+            </div>
+            {downloaded.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No downloaded models detected. Download a model via the LM
+                Studio app.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {downloaded.map((model) => (
+                  <li
+                    className="rounded-md border px-3 py-2 text-sm"
+                    key={model.modelKey}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {model.displayName ?? model.modelKey}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {model.modelKey}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => handleLoadModel(model.modelKey)}
+                          size="sm"
+                        >
+                          Load now
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            addPreferredModel(model.modelKey);
+                            toast.success(
+                              `${model.displayName ?? model.modelKey} added to preferred`
+                            );
+                          }}
                           size="sm"
                           variant="outline"
                         >
-                          Unload
+                          Add to preferred
                         </Button>
-                      ) : (
-                        <Button
-                          disabled={!entry.isDownloaded}
-                          onClick={() => handleLoadModel(entry.modelKey)}
-                          size="sm"
-                        >
-                          Load
-                        </Button>
-                      )}
-                      <Button
-                        onClick={() => removePreferredModel(entry.modelKey)}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        Remove
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-sm">Downloaded models</h3>
-            <Button
-              onClick={() => lmStudio.refresh()}
-              size="sm"
-              variant="outline"
-            >
-              Refresh
-            </Button>
-          </div>
-          {downloaded.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No downloaded models detected. Download a model via the LM Studio
-              app.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {downloaded.map((model) => (
-                <li
-                  className="rounded-md border px-3 py-2 text-sm"
-                  key={model.modelKey}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {model.displayName ?? model.modelKey}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {model.modelKey}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => handleLoadModel(model.modelKey)}
-                        size="sm"
-                      >
-                        Load now
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          addPreferredModel(model.modelKey);
-                          toast.success(
-                            `${model.displayName ?? model.modelKey} added to preferred`
-                          );
-                        }}
-                        size="sm"
-                        variant="outline"
-                      >
-                        Add to preferred
-                      </Button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
 
         <form className="space-y-3" onSubmit={handleAddManualModel}>
           <div className="flex items-center justify-between">
