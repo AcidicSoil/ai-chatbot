@@ -1,6 +1,8 @@
+// path: app/(chat)/api/chat/[id]/stream/route.ts
 import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { differenceInSeconds } from "date-fns";
 import { auth } from "@/app/(auth)/auth";
+import { getStreamContext } from "@/lib/ai/stream-context";
 import {
   getChatById,
   getMessagesByChatId,
@@ -9,7 +11,6 @@ import {
 import type { Chat } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
-import { getStreamContext } from "../../route";
 
 export async function GET(
   _: Request,

@@ -5,7 +5,24 @@ export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const filename = searchParams.get("filename");
 
+  // FIX: Ensure filename exists before passing to put()
+  if (!filename) {
+    return NextResponse.json(
+      { error: "Filename is required" },
+      { status: 400 }
+    );
+  }
+
   // ⚠️ The below code is for App Router Route Handlers only
+  // request.body can be null, but vercel blob handles it or we should validate,
+  // but the specific error was about 'filename'.
+  if (!request.body) {
+    return NextResponse.json(
+      { error: "No file body provided" },
+      { status: 400 }
+    );
+  }
+
   const blob = await put(filename, request.body, {
     access: "public",
   });
@@ -18,9 +35,4 @@ export async function POST(request: Request): Promise<NextResponse> {
   return NextResponse.json(blob);
 }
 
-// The next lines are required for Pages API Routes only
-// export const config = {
-//   api: {
-//     bodyParser: false,
-//   },
-// };
+// ... rest of file
