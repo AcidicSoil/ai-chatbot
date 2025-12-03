@@ -4,6 +4,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import { Trigger } from "@radix-ui/react-select";
 import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
+import { useSession } from "next-auth/react";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -19,8 +20,17 @@ import {
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 import { saveChatModelAsCookie } from "@/app/(chat)/actions";
-import { SelectItem } from "@/components/ui/select";
-import { chatModels } from "@/lib/ai/models";
+import { useChatModels } from "@/hooks/use-chat-models";
+import {
+  createLmStudioModelId,
+  isLmStudioModelId,
+} from "@/lib/ai/lmstudio-ids";
+import {
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+} from "@/components/ui/select";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
@@ -45,6 +55,9 @@ import { PreviewAttachment } from "./preview-attachment";
 import { SuggestedActions } from "./suggested-actions";
 import { Button } from "./ui/button";
 import type { VisibilityType } from "./visibility-selector";
+
+const LMSTUDIO_LOAD_PREFIX = "lmstudio-load:";
+const LMSTUDIO_UNLOAD_PREFIX = "lmstudio-unload:";
 
 function PureMultimodalInput({
   chatId,
@@ -457,50 +470,209 @@ function PureModelSelectorCompact({
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
 }) {
+  const { data: session } = useSession();
+  const userType = session?.user?.type ?? "guest";
+  const { availableModels, canUseLmStudio, lmStudio } = useChatModels({
+    userType,
+  });
+  const { downloaded, loadModel, unloadModel, snapshot, isLoading } =
+    lmStudio;
   const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const offlineToastShownRef = useRef(false);
 
   useEffect(() => {
     setOptimisticModelId(selectedModelId);
   }, [selectedModelId]);
 
-  const selectedModel = chatModels.find(
-    (model) => model.id === optimisticModelId
-  );
+  useEffect(() => {
+    if (!canUseLmStudio) {
+      return;
+    }
+
+    if (snapshot?.isAvailable) {
+      offlineToastShownRef.current = false;
+      return;
+    }
+
+    if (isLoading || snapshot === undefined) {
+      return;
+    }
+
+    if (!offlineToastShownRef.current) {
+      toast.error("LM Studio is offline. Start the LM Studio app to manage local models.");
+      offlineToastShownRef.current = true;
+    }
+  }, [snapshot, isLoading, canUseLmStudio]);
+
+  const selectedModel = useMemo(() => {
+    return (
+      availableModels.find((model) => model.id === optimisticModelId) ||
+      (isLmStudioModelId(optimisticModelId)
+        ? {
+            id: optimisticModelId,
+            name: "LM Studio (Local)",
+            description: "Local model",
+            source: "lmstudio" as const,
+          }
+        : undefined)
+    );
+  }, [availableModels, optimisticModelId]);
+
+  const loadedLmStudioModels = useMemo(() => {
+    return availableModels.filter(
+      (model) => model.source === "lmstudio" && model.identifier
+    );
+  }, [availableModels]);
+
+  const handleModelChange = (value: string) => {
+    if (value.startsWith(LMSTUDIO_LOAD_PREFIX)) {
+      const modelKey = decodeURIComponent(value.slice(LMSTUDIO_LOAD_PREFIX.length));
+      setIsProcessingAction(true);
+      (async () => {
+        try {
+          const loadedModel = await loadModel(modelKey);
+          if (loadedModel) {
+            const modelId = createLmStudioModelId(loadedModel.identifier);
+            startTransition(() => {
+              setOptimisticModelId(modelId);
+              onModelChange?.(modelId);
+              saveChatModelAsCookie(modelId);
+            });
+            toast.success(
+              `Loaded ${loadedModel.displayName ?? loadedModel.modelKey}`
+            );
+          }
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Unable to load LM Studio model"
+          );
+        } finally {
+          setIsProcessingAction(false);
+        }
+      })();
+      return;
+    }
+
+    if (value.startsWith(LMSTUDIO_UNLOAD_PREFIX)) {
+      const identifier = decodeURIComponent(
+        value.slice(LMSTUDIO_UNLOAD_PREFIX.length)
+      );
+      setIsProcessingAction(true);
+      (async () => {
+        try {
+          await unloadModel(identifier);
+          const activeModelId = createLmStudioModelId(identifier);
+          if (optimisticModelId === activeModelId) {
+            startTransition(() => {
+              setOptimisticModelId("lmstudio-chat");
+              onModelChange?.("lmstudio-chat");
+              saveChatModelAsCookie("lmstudio-chat");
+            });
+          }
+          toast.success("Unloaded local model");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Unable to unload LM Studio model"
+          );
+        } finally {
+          setIsProcessingAction(false);
+        }
+      })();
+      return;
+    }
+
+    startTransition(() => {
+      setOptimisticModelId(value);
+      onModelChange?.(value);
+      saveChatModelAsCookie(value);
+    });
+  };
 
   return (
     <PromptInputModelSelect
-      onValueChange={(modelName) => {
-        const model = chatModels.find((m) => m.name === modelName);
-        if (model) {
-          setOptimisticModelId(model.id);
-          onModelChange?.(model.id);
-          startTransition(() => {
-            saveChatModelAsCookie(model.id);
-          });
-        }
-      }}
-      value={selectedModel?.name}
+      disabled={isProcessingAction}
+      onValueChange={handleModelChange}
+      value={optimisticModelId || undefined}
     >
       <Trigger asChild>
         <Button className="h-8 px-2" variant="ghost">
           <CpuIcon size={16} />
           <span className="hidden font-medium text-xs sm:block">
-            {selectedModel?.name}
+            {selectedModel?.name ?? "Select model"}
           </span>
           <ChevronDownIcon size={16} />
         </Button>
       </Trigger>
       <PromptInputModelSelectContent className="min-w-[260px] p-0">
         <div className="flex flex-col gap-px">
-          {chatModels.map((model) => (
-            <SelectItem key={model.id} value={model.name}>
-              <div className="truncate font-medium text-xs">{model.name}</div>
+        {availableModels.map((model) => (
+          <SelectItem key={model.id} value={model.id}>
+              <div className="truncate font-medium text-xs">
+                {model.name}
+              </div>
               <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
                 {model.description}
               </div>
             </SelectItem>
           ))}
         </div>
+        {canUseLmStudio && (
+          <SelectGroup>
+            <SelectSeparator />
+            <SelectLabel>LM Studio</SelectLabel>
+            {!snapshot?.isAvailable && !isLoading && (
+              <div className="px-2 pb-2 text-[10px] text-muted-foreground">
+                Start the LM Studio desktop app to manage local models.
+              </div>
+            )}
+            {isLoading && (
+              <div className="px-2 pb-2 text-[10px] text-muted-foreground">
+                Checking local models…
+              </div>
+            )}
+            {downloaded
+              .filter((model) => Boolean(model.modelKey))
+              .map((model) => (
+                <SelectItem
+                  disabled={isProcessingAction}
+                  key={`load-${model.modelKey}`}
+                  value={`${LMSTUDIO_LOAD_PREFIX}${encodeURIComponent(model.modelKey as string)}`}
+                >
+                  <div className="truncate font-medium text-xs">
+                    Load {model.displayName ?? model.modelKey}
+                  </div>
+                  <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
+                    Downloaded • {model.modelKey}
+                  </div>
+                </SelectItem>
+              ))}
+            {loadedLmStudioModels.length > 0 && (
+              <>
+                <SelectSeparator />
+                <SelectLabel>Unload local model</SelectLabel>
+                {loadedLmStudioModels.map((model) => (
+                  <SelectItem
+                    disabled={isProcessingAction}
+                    key={`unload-${model.identifier}`}
+                    value={`${LMSTUDIO_UNLOAD_PREFIX}${encodeURIComponent(model.identifier as string)}`}
+                  >
+                    <div className="truncate font-medium text-xs">
+                      Unload {model.name}
+                    </div>
+                    <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
+                      {model.modelKey}
+                    </div>
+                  </SelectItem>
+                ))}
+              </>
+            )}
+          </SelectGroup>
+        )}
       </PromptInputModelSelectContent>
     </PromptInputModelSelect>
   );

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DataStreamProvider } from "@/components/data-stream-provider";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
@@ -84,7 +86,11 @@ export default function RootLayout({
           enableSystem
         >
           <Toaster position="top-center" />
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <SidebarProvider>
+              <DataStreamProvider>{children}</DataStreamProvider>
+            </SidebarProvider>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

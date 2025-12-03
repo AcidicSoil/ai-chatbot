@@ -1,3 +1,5 @@
+// import "server-only";
+
 import { gateway } from "@ai-sdk/gateway";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
@@ -5,8 +7,12 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
-import { createGeminiProvider } from "ai-sdk-provider-gemini-cli";
+//import { createGeminiProvider } from "ai-sdk-provider-gemini-cli";
 import { isTestEnvironment } from "../constants";
+import {
+  extractLmStudioIdentifier,
+  isLmStudioModelId,
+} from "./lmstudio-ids";
 
 const lmstudio = createOpenAICompatible({
   name: "lmstudio",
@@ -17,7 +23,7 @@ const LMSTUDIO_CHAT_MODEL_ID =
   process.env.LMSTUDIO_CHAT_MODEL_ID ??
   process.env.LMSTUDIO_MODEL_ID ??
   "llama-3.2-1b";
-
+/*
 function resolveGeminiProvider() {
   const authType = process.env.GEMINI_AUTH_TYPE?.toLowerCase();
 
@@ -45,7 +51,7 @@ function resolveGeminiProvider() {
 }
 
 const gemini = resolveGeminiProvider();
-
+*/
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
@@ -81,6 +87,15 @@ export const myProvider = isTestEnvironment
         // NEW: Gemini chat model via ai-sdk-provider-gemini-cli
         //
         // This ID must match what you configure in the UI (see models.ts).
-        "gemini-2.5-pro": gemini("gemini-2.5-pro"),
+      //  "gemini-2.5-pro": gemini("gemini-2.5-pro"),
       },
     });
+
+export function getLanguageModel(modelId: string) {
+  if (isLmStudioModelId(modelId)) {
+    const identifier = extractLmStudioIdentifier(modelId);
+    return lmstudio(identifier);
+  }
+
+  return myProvider.languageModel(modelId);
+}

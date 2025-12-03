@@ -1,17 +1,18 @@
 // path: lib/ai/lmstudio-client.ts
 import { LMStudioClient } from "@lmstudio/sdk";
+import type { LLMInfo, LLMInstanceInfo } from "@lmstudio/sdk";
 
 const client = new LMStudioClient();
 
-type DownloadedModels = Awaited<
-  ReturnType<LMStudioClient["system"]["listDownloadedModels"]>
->;
-type LoadedModels = Awaited<
-  ReturnType<LMStudioClient["llm"]["listLoaded"]>
->;
+type DownloadedModels = LLMInfo[];
+type LoadedModels = LLMInstanceInfo[];
 type VersionInfo = Awaited<
   ReturnType<LMStudioClient["system"]["getLMStudioVersion"]>
 >;
+
+export type LmStudioDownloadedModel = DownloadedModels[number];
+export type LmStudioLoadedModel = LoadedModels[number];
+export type LmStudioLoadResult = LmStudioLoadedModel;
 
 export type LmStudioSnapshot = {
   downloaded: DownloadedModels;
@@ -38,7 +39,7 @@ export async function getLmStudioSnapshot(): Promise<LmStudioSnapshot> {
     client.system.getLMStudioVersion()
   );
   const downloadedResult = await attempt("listDownloadedModels", () =>
-    client.system.listDownloadedModels()
+    client.system.listDownloadedModels("llm")
   );
   const loadedResult = await attempt("listLoadedModels", () =>
     client.llm.listLoaded()
@@ -57,4 +58,28 @@ export async function getLmStudioSnapshot(): Promise<LmStudioSnapshot> {
     isAvailable: !versionResult.error,
     errors,
   };
+}
+
+export async function loadLmStudioModel({
+  modelKey,
+  identifier,
+}: {
+  modelKey: string;
+  identifier?: string;
+}): Promise<LmStudioLoadResult> {
+  const handle = await client.llm.load(
+    modelKey,
+    identifier ? { identifier } : undefined
+  );
+  const info = await handle.getModelInfo();
+
+  if (!info) {
+    throw new Error("LM Studio returned no model info after loading");
+  }
+
+  return info;
+}
+
+export async function unloadLmStudioModel(identifier: string) {
+  await client.llm.unload(identifier);
 }
