@@ -78,6 +78,10 @@ node_modules/
 /app/(chat)/.codex/config.toml.bak
 /app/(chat)/AGENTS.md
 /app/(chat)/AGENTS.md.bak
+/app/.codex/config.toml
+/app/.codex/config.toml.bak
+/app/AGENTS.md
+/app/AGENTS.md.bak
 /artifacts/.codex/config.toml
 /artifacts/.codex/config.toml.bak
 /artifacts/AGENTS.md

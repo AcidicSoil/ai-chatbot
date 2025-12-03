@@ -1,82 +1,25 @@
-# Directory: lib/db
+# AGENTS.md for `lib/db`
 
 ## Hierarchical Policy
 
-- This directory inherits global rules from `.ruler/AGENTS.md` and specializes them for the data/ORM layer.
-- Owns:
-  - Drizzle schema definition (`schema.ts`).
-  - Database access functions (`queries.ts`).
-  - Migrations (`migrations/**`) and migration runner (`migrate.ts`).
-  - DB helpers under `helpers/**`.
-- Acts as the single source of truth for database structure and access; all app segments must use functions/types from here rather than talking to the DB directly.
+- MUST inherit global rules from `.ruler/AGENTS.md`.
+- ACTS AS the single source of truth for data persistence and schema definitions.
 
 ## Domain Vocabulary
 
-- Entities:
-  - `User`, `Chat`, `Message`, `Suggestion`, `Stream`, `Vote`, `Document`.
-- Types:
-  - Drizzle table helpers (`pgTable`, `uuid`, `timestamp`, `text`, `boolean`, etc.).
-  - `InferSelectModel<typeof table>` for row types.
-- Operations:
-  - Query helpers: `asc`, `desc`, `eq`, `gt`, `lt`, `and`, `or`, `inArray`, `count`.
-  - Error wrapper: `ChatSDKError` for DB-related failures.
-- Infrastructure:
-  - `migrate.ts`: CLI entry to run Drizzle migrations against `POSTGRES_URL`.
+- **Schema**: Drizzle table definitions (`schema.ts`).
+- **Query**: Typed function exporting database operations (`queries.ts`).
+- **Migration**: SQL file managing schema changes.
 
-## Allowed Patterns
+## ORM modeling & access
 
-### Schema and migrations
-
-1. Schema:
-   - All tables are defined in `schema.ts` using Drizzle’s `pgTable` APIs.
-   - Composite primary keys are expressed via `primaryKey({ columns: [...] })`.
-   - Foreign keys are consistently declared using `foreignKey` helpers where needed.
-2. Migrations:
-   - SQL migrations live under `migrations/**` and must reflect the schema in `schema.ts`.
-   - The `migrate.ts` runner:
-     - Loads `.env.local` for `POSTGRES_URL`.
-     - Creates a single-connection client for running migrations.
-     - Exits with non-zero status on error.
-
-### Query functions (`queries.ts`)
-
-1. DB client:
-   - Instantiate `postgres` and `drizzle` once at module top-level.
-   - Use a single client per process; do not re-create per function call.
-2. Query design:
-   - Each exported function should perform a single logical DB operation:
-     - `getUser`, `createUser`, `createGuestUser`.
-     - Chat CRUD and history functions.
-     - Message and stream queries.
-   - On failure, throw a `ChatSDKError` with a stable error code string (`"bad_request:database"`, `"not_found:chat"`, etc.).
-3. Composition:
-   - Multi-step operations (e.g., delete a chat + related messages and votes) are implemented as a single function within this layer.
-   - Callers in `app/**` or `lib/**` must not orchestrate multiple low-level DB calls themselves.
-
-### Server-only enforcement
-
-1. Use `"server-only"` import guard at the top of DB modules that must not run on the client.
-2. Any consumer that imports from `lib/db/queries` must be a server-only file (route handler, server component, server action, or lib server module).
-
-## Prohibited Patterns
-
-1. No React or Next-specific imports:
-   - Do not import `NextResponse`, `Request`, `cookies`, or any React/Next modules into `lib/db`.
-2. No client-side usage:
-   - Never import `lib/db/queries` into `"use client"` components or browser-only code.
-3. No environment access outside configuration:
-   - Only `migrate.ts` and the DB client initialization may read `process.env.POSTGRES_URL`.
-   - Other modules must not read arbitrary env variables.
-4. No side effects beyond DB:
-   - Do not send emails, call external HTTP APIs, or log analytics from this layer; those belong in higher-level services.
+- Files in this directory MUST contain `import "server-only"` to prevent client bundle leakage.
+- MUST define all tables in `schema.ts`.
+- MUST use Drizzle's `eq`, `and`, `or` helpers for type-safe queries.
+- `queries.ts` MUST export async functions for all DB operations; do not export the raw `db` instance to the app.
 
 ## Boundaries
 
-- Incoming dependencies:
-  - `app/**` and `lib/**` may import from `lib/db/schema` for types and constants.
-  - All database reads/writes from outside must go through `lib/db/queries` or dedicated helper functions here.
-- Outgoing dependencies:
-  - Allowed: `drizzle-orm`, `postgres`, `dotenv` (for `migrate.ts`), `@/lib/errors`, `@/lib/utils`, `@/lib/usage`.
-  - Forbidden: imports from `app/**`, `components/**`, `artifacts/**`, `hooks/**`, or any UI modules.
-- Migration boundary:
-  - `migrations/**` files are not imported anywhere; they are read by the Drizzle migrator only.
+- MUST NOT import React components or hooks.
+- MUST NOT import from `app/`.
+- MAY import `lib/utils` or `lib/types`.

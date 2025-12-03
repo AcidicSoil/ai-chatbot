@@ -17,7 +17,7 @@
     "db:up": "drizzle-kit up",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
     "code": "codefetch --include-dir app,lib --exclude-dir .ruler,.cursor --exclude-files \"*.test.ts\", -o app_lib.md",
-    "code:all": "codefetch -t 5 --include-dir app,lib,hooks,artifacts --exclude-dir --exclude-files \"*.test.ts\", -o all.md"
+    "code:all": "codefetch -t 5 --include-dir app,lib,hooks,artifacts --exclude-dir .ruler,.cursor --exclude-files \"*.test.ts\", -o all.md"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^1.0.15",
