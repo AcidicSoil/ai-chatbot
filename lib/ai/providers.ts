@@ -22,7 +22,7 @@ const lmstudio = createOpenAICompatible({
 const LMSTUDIO_CHAT_MODEL_ID =
   process.env.LMSTUDIO_CHAT_MODEL_ID ??
   process.env.LMSTUDIO_MODEL_ID ??
-  "llama-3.2-1b";
+  "qwen_qwen3-vl-4b-instruct";
 /*
 function resolveGeminiProvider() {
   const authType = process.env.GEMINI_AUTH_TYPE?.toLowerCase();
@@ -71,13 +71,13 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
+        "chat-model": lmstudio(LMSTUDIO_CHAT_MODEL_ID),
         "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-3-mini"),
+          model: lmstudio(LMSTUDIO_CHAT_MODEL_ID),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+        "title-model": lmstudio(LMSTUDIO_CHAT_MODEL_ID),
+        "artifact-model": lmstudio(LMSTUDIO_CHAT_MODEL_ID),
         // NEW: LM Studio chat model
         //
         // Make sure you have this model downloaded in LM Studio and that
@@ -87,7 +87,7 @@ export const myProvider = isTestEnvironment
         // NEW: Gemini chat model via ai-sdk-provider-gemini-cli
         //
         // This ID must match what you configure in the UI (see models.ts).
-      //  "gemini-2.5-pro": gemini("gemini-2.5-pro"),
+        //  "gemini-2.5-pro": gemini("gemini-2.5-pro"),
       },
     });
 
