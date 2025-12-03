@@ -1,7 +1,7 @@
 "use client";
 
 import type { PutBlobResult } from "@vercel/blob";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 
 export default function AvatarUploadPage() {
   const inputFileRef = useRef<HTMLInputElement>(null);
@@ -34,11 +34,11 @@ export default function AvatarUploadPage() {
         }}
       >
         <input
+          accept="image/jpeg, image/png, image/webp"
           name="file"
           ref={inputFileRef}
-          type="file"
-          accept="image/jpeg, image/png, image/webp"
           required
+          type="file"
         />
         <button type="submit">Upload</button>
       </form>

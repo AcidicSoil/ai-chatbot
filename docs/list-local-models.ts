@@ -1,4 +1,3 @@
-
 import { LMStudioClient } from "@lmstudio/sdk";
 
 /**
@@ -15,7 +14,9 @@ async function main() {
   console.log("Downloaded models:", models);
 
   if (models.length === 0) {
-    console.log("No models downloaded yet. Please download a model in the LM Studio app.");
+    console.log(
+      "No models downloaded yet. Please download a model in the LM Studio app."
+    );
     return;
   }
 

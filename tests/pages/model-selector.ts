@@ -1,4 +1,4 @@
-import { Page, expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export class ModelSelectorPage {
   constructor(private page: Page) {}
@@ -13,6 +13,8 @@ export class ModelSelectorPage {
   }
 
   async isErrorVisible() {
-    await expect(this.page.locator('[data-testid="error-message"]')).toBeVisible();
+    await expect(
+      this.page.locator('[data-testid="error-message"]')
+    ).toBeVisible();
   }
 }

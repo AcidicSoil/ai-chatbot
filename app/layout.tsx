@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
 import { DataStreamProvider } from "@/components/data-stream-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
 
 import Script from "next/script";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
@@ -72,8 +72,8 @@ export default function RootLayout({
         />
         {process.env.NODE_ENV === "development" && (
           <Script
-            src="//unpkg.com/react-grab/dist/index.global.js"
             crossOrigin="anonymous"
+            src="//unpkg.com/react-grab/dist/index.global.js"
             strategy="beforeInteractive"
           />
         )}

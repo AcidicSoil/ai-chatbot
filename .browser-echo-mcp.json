@@ -1,1 +1,6 @@
-{"url":"http://127.0.0.1:5179","route":"/__client-logs","timestamp":1764737940183,"pid":495285}
+{
+  "url": "http://127.0.0.1:5179",
+  "route": "/__client-logs",
+  "timestamp": 1764737940183,
+  "pid": 495285
+}

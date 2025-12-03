@@ -20,17 +20,17 @@ import {
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 import { saveChatModelAsCookie } from "@/app/(chat)/actions";
-import { useChatModels } from "@/hooks/use-chat-models";
-import {
-  createLmStudioModelId,
-  isLmStudioModelId,
-} from "@/lib/ai/lmstudio-ids";
 import {
   SelectGroup,
   SelectItem,
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
+import { useChatModels } from "@/hooks/use-chat-models";
+import {
+  createLmStudioModelId,
+  isLmStudioModelId,
+} from "@/lib/ai/lmstudio-ids";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
@@ -475,8 +475,7 @@ function PureModelSelectorCompact({
   const { availableModels, canUseLmStudio, lmStudio } = useChatModels({
     userType,
   });
-  const { downloaded, loadModel, unloadModel, snapshot, isLoading } =
-    lmStudio;
+  const { downloaded, loadModel, unloadModel, snapshot, isLoading } = lmStudio;
   const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const offlineToastShownRef = useRef(false);
@@ -500,7 +499,9 @@ function PureModelSelectorCompact({
     }
 
     if (!offlineToastShownRef.current) {
-      toast.error("LM Studio is offline. Start the LM Studio app to manage local models.");
+      toast.error(
+        "LM Studio is offline. Start the LM Studio app to manage local models."
+      );
       offlineToastShownRef.current = true;
     }
   }, [snapshot, isLoading, canUseLmStudio]);
@@ -527,7 +528,9 @@ function PureModelSelectorCompact({
 
   const handleModelChange = (value: string) => {
     if (value.startsWith(LMSTUDIO_LOAD_PREFIX)) {
-      const modelKey = decodeURIComponent(value.slice(LMSTUDIO_LOAD_PREFIX.length));
+      const modelKey = decodeURIComponent(
+        value.slice(LMSTUDIO_LOAD_PREFIX.length)
+      );
       setIsProcessingAction(true);
       (async () => {
         try {
@@ -610,11 +613,9 @@ function PureModelSelectorCompact({
       </Trigger>
       <PromptInputModelSelectContent className="min-w-[260px] p-0">
         <div className="flex flex-col gap-px">
-        {availableModels.map((model) => (
-          <SelectItem key={model.id} value={model.id}>
-              <div className="truncate font-medium text-xs">
-                {model.name}
-              </div>
+          {availableModels.map((model) => (
+            <SelectItem key={model.id} value={model.id}>
+              <div className="truncate font-medium text-xs">{model.name}</div>
               <div className="mt-px truncate text-[10px] text-muted-foreground leading-tight">
                 {model.description}
               </div>

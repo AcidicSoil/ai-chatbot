@@ -1,0 +1,1122 @@
+
+> ai-chatbot@3.1.0 lint /home/user/projects/temp/next-js_examples/ai-chatbot
+> npx ultracite@latest check
+
+.storybook/preview.ts:9:14 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × expected `>` but instead found `value`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │              ^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i Remove value
+  
+
+.storybook/preview.ts:9:3 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Invalid assignment to `<SWRConfig value`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │   ^^^^^^^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i This expression cannot be assigned to
+  
+
+.storybook/preview.ts:9:21 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Expected a property, a shorthand property, a getter, a setter, or a method but instead found '{ provider'.
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │                     ^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i Expected a property, a shorthand property, a getter, a setter, or a method here.
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │                     ^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+
+.storybook/preview.ts:9:31 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × expected `,` but instead found `:`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │                               ^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i Remove :
+  
+
+.storybook/preview.ts:10:1 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × expected `)` but instead found `}`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+     9 │   <SWRConfig value={{ provider: () => new Map() }
+  > 10 │ }>
+       │ ^
+    11 │     <ThemeProvider
+    12 │       attribute="class"
+  
+  i Remove }
+  
+
+.storybook/preview.ts:19:1 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Expected a statement but instead found '>
+          <div className="min-h-screen bg-background text-foreground">
+            <Story />
+          </div>
+        </ThemeProvider>
+      </SWRConfig>
+    )'.
+  
+    17 │   false;
+    18 │ }
+  > 19 │ >
+       │ ^
+  > 20 │       <div className="min-h-screen bg-background text-foreground">
+        ...
+  > 24 │   </SWRConfig>
+  > 25 │ )
+       │ ^
+    26 │ 
+    27 │ const preview: Preview = {
+  
+  i Expected a statement here.
+  
+    17 │   false;
+    18 │ }
+  > 19 │ >
+       │ ^
+  > 20 │       <div className="min-h-screen bg-background text-foreground">
+        ...
+  > 24 │   </SWRConfig>
+  > 25 │ )
+       │ ^
+    26 │ 
+    27 │ const preview: Preview = {
+  
+
+.storybook/preview.ts:9:3 lint/suspicious/noAssignInExpressions ━━━━━━━━━━━━
+
+  × The assignment should not be in an expression.
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i The use of assignments in expressions is confusing.
+    Expressions are often considered as side-effect free.
+  
+
+.storybook/preview.ts:16:1 lint/complexity/noUselessLoneBlockStatements ━━━━━━━━━━
+
+  × This block statement doesn't serve any purpose and can be safely removed.
+  
+    14 │       disableTransitionOnChange
+    15 │       enableSystem=
+  > 16 │ {
+       │ ^
+  > 17 │   false;
+  > 18 │ }
+       │ ^
+    19 │ >
+    20 │       <div className="min-h-screen bg-background text-foreground">
+  
+  i Standalone block statements without any block-level declarations are redundant in JavaScript and can be removed to simplify the code.
+  
+
+.storybook/preview.ts:9:14 lint/correctness/noUndeclaredVariables ━━━━━━━━━━
+
+  × The value variable is undeclared.
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │              ^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i By default, Biome recognizes browser and Node.js globals.
+    You can ignore more globals using the javascript.globals configuration.
+  
+
+.storybook/preview.ts:6:8 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  × This import is unused.
+  
+    4 │ import type { Decorator } from "@storybook/react";
+    5 │ import type { SWRConfig } from "swr";
+  > 6 │ import { ThemeProvider } from "@/components/theme-provider";
+      │        ^^^^^^^^^^^^^^^^^
+    7 │ 
+    8 │ const withProviders: Decorator = (Story) => (
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+     4  4 │   import type { Decorator } from "@storybook/react";
+     5  5 │   import type { SWRConfig } from "swr";
+     6    │ - import·{·ThemeProvider·}·from·"@/components/theme-provider";
+     7  6 │   
+     8  7 │   const withProviders: Decorator = (Story) => (
+  
+
+.storybook/preview.ts:8:35 lint/correctness/noUnusedFunctionParameters  FIXABLE  ━━━━━━━━━━
+
+  × This parameter is unused.
+  
+     6 │ import { ThemeProvider } from "@/components/theme-provider";
+     7 │ 
+   > 8 │ const withProviders: Decorator = (Story) => (
+       │                                   ^^^^^
+     9 │   <SWRConfig value={{ provider: () => new Map() }
+    10 │ }>
+  
+  i Unused parameters might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: If this is intentional, prepend Story with an underscore.
+  
+     6  6 │   import { ThemeProvider } from "@/components/theme-provider";
+     7  7 │   
+     8    │ - const·withProviders:·Decorator·=·(Story)·=>·(
+        8 │ + const·withProviders:·Decorator·=·(_Story)·=>·(
+     9  9 │     <SWRConfig value={{ provider: () => new Map() }
+    10 10 │   }>
+  
+
+.storybook/preview.ts:9:14 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × expected `>` but instead found `value`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │              ^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i Remove value
+  
+
+.storybook/preview.ts:9:3 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Invalid assignment to `<SWRConfig value`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │   ^^^^^^^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i This expression cannot be assigned to
+  
+
+.storybook/preview.ts:9:21 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Expected a property, a shorthand property, a getter, a setter, or a method but instead found '{ provider'.
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │                     ^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i Expected a property, a shorthand property, a getter, a setter, or a method here.
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │                     ^^^^^^^^^^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+
+.storybook/preview.ts:9:31 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × expected `,` but instead found `:`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+   > 9 │   <SWRConfig value={{ provider: () => new Map() }
+       │                               ^
+    10 │ }>
+    11 │     <ThemeProvider
+  
+  i Remove :
+  
+
+.storybook/preview.ts:10:1 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × expected `)` but instead found `}`
+  
+     8 │ const withProviders: Decorator = (Story) => (
+     9 │   <SWRConfig value={{ provider: () => new Map() }
+  > 10 │ }>
+       │ ^
+    11 │     <ThemeProvider
+    12 │       attribute="class"
+  
+  i Remove }
+  
+
+.storybook/preview.ts:19:1 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Expected a statement but instead found '>
+          <div className="min-h-screen bg-background text-foreground">
+            <Story />
+          </div>
+        </ThemeProvider>
+      </SWRConfig>
+    )'.
+  
+    17 │   false;
+    18 │ }
+  > 19 │ >
+       │ ^
+  > 20 │       <div className="min-h-screen bg-background text-foreground">
+        ...
+  > 24 │   </SWRConfig>
+  > 25 │ )
+       │ ^
+    26 │ 
+    27 │ const preview: Preview = {
+  
+  i Expected a statement here.
+  
+    17 │   false;
+    18 │ }
+  > 19 │ >
+       │ ^
+  > 20 │       <div className="min-h-screen bg-background text-foreground">
+        ...
+  > 24 │   </SWRConfig>
+  > 25 │ )
+       │ ^
+    26 │ 
+    27 │ const preview: Preview = {
+  
+
+.storybook/vitest.setup.ts:3:8 lint/performance/noNamespaceImport ━━━━━━━━━━
+
+  × Avoid namespace imports, it can prevent efficient tree shaking and increase bundle size.
+  
+    1 │ import * as a11yAddonAnnotations from "@storybook/addon-a11y/preview";
+    2 │ import { setProjectAnnotations } from "@storybook/nextjs-vite";
+  > 3 │ import * as projectAnnotations from "./preview";
+      │        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    4 │ 
+    5 │ // This is an important step to apply the right configuration when testing your stories.
+  
+  i Use named imports instead.
+  
+
+.storybook/vitest.setup.ts:1:8 lint/performance/noNamespaceImport ━━━━━━━━━━
+
+  × Avoid namespace imports, it can prevent efficient tree shaking and increase bundle size.
+  
+  > 1 │ import * as a11yAddonAnnotations from "@storybook/addon-a11y/preview";
+      │        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { setProjectAnnotations } from "@storybook/nextjs-vite";
+    3 │ import * as projectAnnotations from "./preview";
+  
+  i Use named imports instead.
+  
+
+app/(chat)/api/chat/route.ts:24:28 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  × Several of these imports are unused.
+  
+    22 │ import type { ChatModel } from "@/lib/ai/models";
+    23 │ import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
+  > 24 │ import { getLanguageModel, myProvider } from "@/lib/ai/providers";
+       │                            ^^^^^^^^^^
+    25 │ import { createDocument } from "@/lib/ai/tools/create-document";
+    26 │ import { getWeather } from "@/lib/ai/tools/get-weather";
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    24 │ import·{·getLanguageModel,·myProvider·}·from·"@/lib/ai/providers";
+       │                            -----------                            
+
+app/(chat)/api/lmstudio/models/load/route.ts:11:12 lint/correctness/noUnusedVariables  FIXABLE  ━━━━━━━━━━
+
+  × This variable error is unused.
+  
+     9 │     modelKey =
+    10 │       typeof payload?.modelKey === "string" ? payload.modelKey : undefined;
+  > 11 │   } catch (error) {
+       │            ^^^^^
+    12 │     return NextResponse.json(
+    13 │       { error: "Invalid JSON payload" },
+  
+  i Unused variables are often the result of an incomplete refactoring, typos, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend error with an underscore.
+  
+     9  9 │       modelKey =
+    10 10 │         typeof payload?.modelKey === "string" ? payload.modelKey : undefined;
+    11    │ - ··}·catch·(error)·{
+       11 │ + ··}·catch·(_error)·{
+    12 12 │       return NextResponse.json(
+    13 13 │         { error: "Invalid JSON payload" },
+  
+
+app/(chat)/api/lmstudio/models/unload/route.ts:11:12 lint/correctness/noUnusedVariables  FIXABLE  ━━━━━━━━━━
+
+  × This variable error is unused.
+  
+     9 │     identifier =
+    10 │       typeof payload?.identifier === "string" ? payload.identifier : undefined;
+  > 11 │   } catch (error) {
+       │            ^^^^^
+    12 │     return NextResponse.json(
+    13 │       { error: "Invalid JSON payload" },
+  
+  i Unused variables are often the result of an incomplete refactoring, typos, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend error with an underscore.
+  
+     9  9 │       identifier =
+    10 10 │         typeof payload?.identifier === "string" ? payload.identifier : undefined;
+    11    │ - ··}·catch·(error)·{
+       11 │ + ··}·catch·(_error)·{
+    12 12 │       return NextResponse.json(
+    13 13 │         { error: "Invalid JSON payload" },
+  
+
+components/ai-elements/image.tsx:15:3 lint/nursery/useImageSize ━━━━━━━━━━━━
+
+  × Missing width or height attribute on img element.
+  
+    13 │   ...props
+    14 │ }: ImageProps) => (
+  > 15 │   <img
+       │   ^^^^
+  > 16 │     {...props}
+        ...
+  > 22 │     src={`data:${mediaType};base64,${base64}`}
+  > 23 │   />
+       │   ^^
+    24 │ );
+    25 │ 
+  
+  i Without explicit dimensions, images cause layout shifts (CLS) when loading, harming user experience and SEO.
+  
+  i Learn why this matters: web.dev: Image Dimensions, MDN: img attributes
+  
+
+components/ai-elements/image.tsx:15:3 lint/performance/noImgElement ━━━━━━━━━━
+
+  × Don't use <img> element.
+  
+    13 │   ...props
+    14 │ }: ImageProps) => (
+  > 15 │   <img
+       │   ^^^^
+  > 16 │     {...props}
+        ...
+  > 22 │     src={`data:${mediaType};base64,${base64}`}
+  > 23 │   />
+       │   ^^
+    24 │ );
+    25 │ 
+  
+  i Using the <img> can lead to slower LCP and higher bandwidth. Consider using <Image /> from next/image to automatically optimize images.
+  
+
+components/ai-elements/message.tsx:349:11 lint/performance/noImgElement ━━━━━━━━━━
+
+  × Don't use <img> element.
+  
+    347 │       {isImage ? (
+    348 │         <>
+  > 349 │           <img
+        │           ^^^^
+  > 350 │             alt={filename || "attachment"}
+         ...
+  > 354 │             width={100}
+  > 355 │           />
+        │           ^^
+    356 │           {onRemove && (
+    357 │             <Button
+  
+  i Using the <img> can lead to slower LCP and higher bandwidth. Consider using <Image /> from next/image to automatically optimize images.
+  
+
+components/ai-elements/model-selector.tsx:173:3 lint/performance/noImgElement ━━━━━━━━━━
+
+  × Don't use <img> element.
+  
+    171 │   ...props
+    172 │ }: ModelSelectorLogoProps) => (
+  > 173 │   <img
+        │   ^^^^
+  > 174 │     {...props}
+         ...
+  > 179 │     width={12}
+  > 180 │   />
+        │   ^^
+    181 │ );
+    182 │ 
+  
+  i Using the <img> can lead to slower LCP and higher bandwidth. Consider using <Image /> from next/image to automatically optimize images.
+  
+
+components/ai-elements/prompt-input.tsx:656:11 lint/style/useBlockStatements  FIXABLE  ━━━━━━━━━━
+
+  × Block statements are preferred in this position.
+  
+    654 │       if (!usingProvider) {
+    655 │         for (const f of filesRef.current) {
+  > 656 │           if (f.url) URL.revokeObjectURL(f.url);
+        │           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    657 │         }
+    658 │       }
+  
+  i Unsafe fix: Wrap the statement with a `JsBlockStatement`
+  
+    656 │ ··········if·(f.url)·{·URL.revokeObjectURL(f.url);·}
+        │                      ++                           ++
+
+components/ai-elements/prompt-input.tsx:1126:13 lint/nursery/noShadow ━━━━━━━━━━
+
+  × This variable shadows another variable with the same name in the outer scope.
+  
+    1124 │       ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
+    1125 │     ) {
+  > 1126 │       const SpeechRecognition =
+         │             ^^^^^^^^^^^^^^^^^
+    1127 │         window.SpeechRecognition || window.webkitSpeechRecognition;
+    1128 │       const speechRecognition = new SpeechRecognition();
+  
+  i This is the shadowed variable, which is now inaccessible in the inner scope.
+  
+    1046 │ };
+    1047 │ 
+  > 1048 │ interface SpeechRecognition extends EventTarget {
+         │           ^^^^^^^^^^^^^^^^^
+    1049 │   continuous: boolean;
+    1050 │   interimResults: boolean;
+  
+  i Consider renaming this variable. It's easy to confuse the origin of variables if they share the same name.
+  
+
+components/ai-elements/prompt-input.tsx:157:44 lint/suspicious/noEmptyBlockStatements ━━━━━━━━━━
+
+  × Unexpected empty block.
+  
+    155 │   >([]);
+    156 │   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  > 157 │   const openRef = useRef<() => void>(() => {});
+        │                                            ^^
+    158 │ 
+    159 │   const add = useCallback((files: File[] | FileList) => {
+  
+  i Empty blocks are usually the result of an incomplete refactoring. Remove the empty block or add a comment inside it if it is intentional.
+  
+
+components/ai-elements/prompt-input.tsx:313:17 lint/performance/noImgElement ━━━━━━━━━━
+
+  × Don't use <img> element.
+  
+    311 │             <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
+    312 │               {isImage ? (
+  > 313 │                 <img
+        │                 ^^^^
+  > 314 │                   alt={filename || "attachment"}
+         ...
+  > 318 │                   width={20}
+  > 319 │                 />
+        │                 ^^
+    320 │               ) : (
+    321 │                 <div className="flex size-5 items-center justify-center text-muted-foreground">
+  
+  i Using the <img> can lead to slower LCP and higher bandwidth. Consider using <Image /> from next/image to automatically optimize images.
+  
+
+components/ai-elements/prompt-input.tsx:348:15 lint/performance/noImgElement ━━━━━━━━━━
+
+  × Don't use <img> element.
+  
+    346 │           {isImage && (
+    347 │             <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
+  > 348 │               <img
+        │               ^^^^
+  > 349 │                 alt={filename || "attachment preview"}
+         ...
+  > 353 │                 width={448}
+  > 354 │               />
+        │               ^^
+    355 │             </div>
+    356 │           )}
+  
+  i Using the <img> can lead to slower LCP and higher bandwidth. Consider using <Image /> from next/image to automatically optimize images.
+  
+
+components/ai-elements/prompt-input.tsx:590:5 lint/style/useBlockStatements  FIXABLE  ━━━━━━━━━━
+
+  × Block statements are preferred in this position.
+  
+    588 │   // Let provider know about our hidden file input so external menus can call openFileDialog()
+    589 │   useEffect(() => {
+  > 590 │     if (!usingProvider) return;
+        │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    591 │     controller.__registerFileInput(inputRef, () => inputRef.current?.click());
+    592 │   }, [usingProvider, controller]);
+  
+  i Unsafe fix: Wrap the statement with a `JsBlockStatement`
+  
+    590 │ ····if·(!usingProvider)·{·return;·}
+        │                         ++       ++
+
+components/ai-elements/prompt-input.tsx:605:5 lint/style/useBlockStatements  FIXABLE  ━━━━━━━━━━
+
+  × Block statements are preferred in this position.
+  
+    603 │   useEffect(() => {
+    604 │     const form = formRef.current;
+  > 605 │     if (!form) return;
+        │     ^^^^^^^^^^^^^^^^^^
+    606 │ 
+    607 │     const onDragOver = (e: DragEvent) => {
+  
+  i Unsafe fix: Wrap the statement with a `JsBlockStatement`
+  
+    605 │ ····if·(!form)·{·return;·}
+        │                ++       ++
+
+components/ai-elements/prompt-input.tsx:629:5 lint/style/useBlockStatements  FIXABLE  ━━━━━━━━━━
+
+  × Block statements are preferred in this position.
+  
+    628 │   useEffect(() => {
+  > 629 │     if (!globalDrop) return;
+        │     ^^^^^^^^^^^^^^^^^^^^^^^^
+    630 │ 
+    631 │     const onDragOver = (e: DragEvent) => {
+  
+  i Unsafe fix: Wrap the statement with a `JsBlockStatement`
+  
+    629 │ ····if·(!globalDrop)·{·return;·}
+        │                      ++       ++
+
+components/ai-elements/prompt-input.tsx:721:13 lint/complexity/useOptionalChain  FIXABLE  ━━━━━━━━━━
+
+  × Change to an optional chain.
+  
+    719 │     Promise.all(
+    720 │       files.map(async ({ id, ...item }) => {
+  > 721 │         if (item.url && item.url.startsWith("blob:")) {
+        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    722 │           const dataUrl = await convertBlobUrlToDataUrl(item.url);
+    723 │           // If conversion failed, keep the original blob URL
+  
+  i Unsafe fix: Change to an optional chain.
+  
+     719  719 │       Promise.all(
+     720  720 │         files.map(async ({ id, ...item }) => {
+     721      │ - ········if·(item.url·&&·item.url.startsWith("blob:"))·{
+          721 │ + ········if·(item.url?.startsWith("blob:"))·{
+     722  722 │             const dataUrl = await convertBlobUrlToDataUrl(item.url);
+     723  723 │             // If conversion failed, keep the original blob URL
+  
+
+components/ai-elements/prompt-input.tsx:1092:3 lint/nursery/useConsistentTypeDefinitions  FIXABLE  ━━━━━━━━━━
+
+  × Use of the interface detected.
+  
+    1091 │ declare global {
+  > 1092 │   interface Window {
+         │   ^^^^^^^^^^^^^^^^^^
+  > 1093 │     SpeechRecognition: {
+          ...
+  > 1098 │     };
+  > 1099 │   }
+         │   ^
+    1100 │ }
+    1101 │ 
+  
+  i The codebase should use a consistent coding style for the definition of types. This improves the readability and consistency.
+  
+  i Unsafe fix: Use type alias.
+  
+    1090 1090 │   
+    1091 1091 │   declare global {
+    1092      │ - ··interface·Window·{
+         1092 │ + ··type·Window·=·{
+    1093 1093 │       SpeechRecognition: {
+    1094 1094 │         new (): SpeechRecognition;
+    ········· │ 
+    1097 1097 │         new (): SpeechRecognition;
+    1098 1098 │       };
+    1099      │ - ··}
+         1099 │ + ··};
+    1100 1100 │   }
+    1101 1101 │   
+  
+
+components/ai-elements/queue.tsx:154:3 lint/performance/noImgElement ━━━━━━━━━━
+
+  × Don't use <img> element.
+  
+    152 │   ...props
+    153 │ }: QueueItemImageProps) => (
+  > 154 │   <img
+        │   ^^^^
+  > 155 │     alt=""
+         ...
+  > 159 │     {...props}
+  > 160 │   />
+        │   ^^
+    161 │ );
+    162 │ 
+  
+  i Using the <img> can lead to slower LCP and higher bandwidth. Consider using <Image /> from next/image to automatically optimize images.
+  
+
+components/lmstudio-model-settings.tsx:51:32 lint/suspicious/useAwait ━━━━━━━━━━
+
+  × This async function lacks an await expression.
+  
+    49 │   }, [preferredModels, snapshot]);
+    50 │ 
+  > 51 │   const handleAddManualModel = async (event: React.FormEvent) => {
+       │                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 52 │     event.preventDefault();
+        ...
+  > 59 │     setManualModelKey("");
+  > 60 │   };
+       │   ^
+    61 │ 
+    62 │   const handleLoadModel = async (modelKey: string) => {
+  
+  i Remove this async modifier, or add an await expression in the function.
+  
+    49 │   }, [preferredModels, snapshot]);
+    50 │ 
+  > 51 │   const handleAddManualModel = async (event: React.FormEvent) => {
+       │                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 52 │     event.preventDefault();
+        ...
+  > 59 │     setManualModelKey("");
+  > 60 │   };
+       │   ^
+    61 │ 
+    62 │   const handleLoadModel = async (modelKey: string) => {
+  
+  i Async functions without await expressions may not need to be declared async.
+  
+
+components/lmstudio-model-settings.tsx:33:28 lint/correctness/useHookAtTopLevel ━━━━━━━━━━
+
+  × This hook is being called conditionally, but all hooks must be called in the exact same order in every component render.
+  
+    31 │   }
+    32 │ 
+  > 33 │   const preferredEntries = useMemo(() => {
+       │                            ^^^^^^^
+    34 │     return preferredModels.map((modelKey) => {
+    35 │       const loaded = snapshot?.loaded?.find(
+  
+  i Hooks should not be called after an early return.
+  
+    27 │   const [manualModelKey, setManualModelKey] = useState("");
+    28 │ 
+  > 29 │   if (!canUseLmStudio) {
+       │                         
+  > 30 │     return null;
+       │     ^^^^^^^^^^^^
+    31 │   }
+    32 │ 
+  
+  i For React to preserve state between calls, hooks needs to be called unconditionally and always in the same order.
+  
+  i See https://reactjs.org/docs/hooks-rules.html#only-call-hooks-at-the-top-level
+  
+
+lib/ai/providers.ts:3:8 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  × This import is unused.
+  
+    1 │ // import "server-only";
+    2 │ 
+  > 3 │ import { gateway } from "@ai-sdk/gateway";
+      │        ^^^^^^^^^^^
+    4 │ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+    5 │ import {
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+     1    │ - //·import·"server-only";
+     2    │ - 
+     3    │ - import·{·gateway·}·from·"@ai-sdk/gateway";
+        1 │ + //·import·"server-only";
+        2 │ + 
+     4  3 │   import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+     5  4 │   import {
+  
+
+stories/Button.stories.ts lint/style/useFilenamingConvention ━━━━━━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    button.stories.ts
+  
+
+stories/Button.tsx:3:8 lint/nursery/useConsistentTypeDefinitions  FIXABLE  ━━━━━━━━━━
+
+  × Use of the interface detected.
+  
+     1 │ import "./button.css";
+     2 │ 
+   > 3 │ export interface ButtonProps {
+       │        ^^^^^^^^^^^^^^^^^^^^^^^
+   > 4 │   /** Is this the principal call to action on the page? */
+        ...
+  > 13 │   onClick?: () => void;
+  > 14 │ }
+       │ ^
+    15 │ 
+    16 │ /** Primary UI component for user interaction */
+  
+  i The codebase should use a consistent coding style for the definition of types. This improves the readability and consistency.
+  
+  i Unsafe fix: Use type alias.
+  
+     1  1 │   import "./button.css";
+     2  2 │   
+     3    │ - export·interface·ButtonProps·{
+        3 │ + export·type·ButtonProps·=·{
+     4  4 │     /** Is this the principal call to action on the page? */
+     5  5 │     primary?: boolean;
+    ····· │ 
+    12 12 │     /** Optional click handler */
+    13 13 │     onClick?: () => void;
+    14    │ - }
+       14 │ + };
+    15 15 │   
+    16 16 │   /** Primary UI component for user interaction */
+  
+
+stories/Button.tsx lint/style/useFilenamingConvention ━━━━━━━━━━━━━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    button.tsx
+  
+
+stories/Header.stories.ts lint/style/useFilenamingConvention ━━━━━━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    header.stories.ts
+  
+
+stories/Header.tsx:8:8 lint/nursery/useConsistentTypeDefinitions  FIXABLE  ━━━━━━━━━━
+
+  × Use of the interface detected.
+  
+     6 │ };
+     7 │ 
+   > 8 │ export interface HeaderProps {
+       │        ^^^^^^^^^^^^^^^^^^^^^^^
+   > 9 │   user?: User;
+  > 10 │   onLogin?: () => void;
+  > 11 │   onLogout?: () => void;
+  > 12 │   onCreateAccount?: () => void;
+  > 13 │ }
+       │ ^
+    14 │ 
+    15 │ export const Header = ({
+  
+  i The codebase should use a consistent coding style for the definition of types. This improves the readability and consistency.
+  
+  i Unsafe fix: Use type alias.
+  
+     6  6 │   };
+     7  7 │   
+     8    │ - export·interface·HeaderProps·{
+        8 │ + export·type·HeaderProps·=·{
+     9  9 │     user?: User;
+    10 10 │     onLogin?: () => void;
+    11 11 │     onLogout?: () => void;
+    12 12 │     onCreateAccount?: () => void;
+    13    │ - }
+       13 │ + };
+    14 14 │   
+    15 15 │   export const Header = ({
+  
+
+stories/Header.tsx lint/style/useFilenamingConvention ━━━━━━━━━━━━━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    header.tsx
+  
+
+stories/Page.stories.ts:30:61 lint/performance/useTopLevelRegex ━━━━━━━━━━━━
+
+  × This regex literal is not defined in the top level scope. This can lead to performance issues if this function is called frequently.
+  
+    28 │     await expect(loginButton).not.toBeInTheDocument();
+    29 │ 
+  > 30 │     const logoutButton = canvas.getByRole("button", { name: /Log out/i });
+       │                                                             ^^^^^^^^^^
+    31 │     await expect(logoutButton).toBeInTheDocument();
+    32 │   },
+  
+  i Move the regex literal outside of this scope, and place it at the top level of this module, as a constant.
+  
+
+stories/Page.stories.ts lint/style/useFilenamingConvention ━━━━━━━━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    page.stories.ts
+  
+
+stories/Page.stories.ts:25:60 lint/performance/useTopLevelRegex ━━━━━━━━━━━━
+
+  × This regex literal is not defined in the top level scope. This can lead to performance issues if this function is called frequently.
+  
+    23 │   play: async ({ canvasElement }) => {
+    24 │     const canvas = within(canvasElement);
+  > 25 │     const loginButton = canvas.getByRole("button", { name: /Log in/i });
+       │                                                            ^^^^^^^^^
+    26 │     await expect(loginButton).toBeInTheDocument();
+    27 │     await userEvent.click(loginButton);
+  
+  i Move the regex literal outside of this scope, and place it at the top level of this module, as a constant.
+  
+
+stories/Page.tsx lint/style/useFilenamingConvention ━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    page.tsx
+  
+
+stories/artifacts/CodeEditor.stories.tsx lint/style/useFilenamingConvention ━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    code-editor.stories.tsx
+  
+
+stories/artifacts/ImageEditor.stories.tsx lint/style/useFilenamingConvention ━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    image-editor.stories.tsx
+  
+
+stories/artifacts/Suggestion.stories.tsx lint/style/useFilenamingConvention ━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    suggestion.stories.tsx
+  
+
+stories/chat/ChatHeader.stories.tsx:58:38 lint/suspicious/noEmptyBlockStatements ━━━━━━━━━━
+
+  × Unexpected empty block.
+  
+    56 │         modelKey: "phi-3",
+    57 │       })),
+  > 58 │       unloadModel: vi.fn(async () => {}),
+       │                                      ^^
+    59 │       refresh: vi.fn(async () => {}),
+    60 │     },
+  
+  i Empty blocks are usually the result of an incomplete refactoring. Remove the empty block or add a comment inside it if it is intentional.
+  
+
+stories/chat/ChatHeader.stories.tsx:59:34 lint/suspicious/noEmptyBlockStatements ━━━━━━━━━━
+
+  × Unexpected empty block.
+  
+    57 │       })),
+    58 │       unloadModel: vi.fn(async () => {}),
+  > 59 │       refresh: vi.fn(async () => {}),
+       │                                  ^^
+    60 │     },
+    61 │   }),
+  
+  i Empty blocks are usually the result of an incomplete refactoring. Remove the empty block or add a comment inside it if it is intentional.
+  
+
+stories/chat/ChatHeader.stories.tsx lint/style/useFilenamingConvention ━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    chat-header.stories.tsx
+  
+
+stories/chat/SidebarHistory.stories.tsx lint/style/useFilenamingConvention ━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    sidebar-history.stories.tsx
+  
+
+stories/chat/SidebarHistory.stories.tsx:78:16 lint/correctness/noUnusedFunctionParameters  FIXABLE  ━━━━━━━━━━
+
+  × This parameter is unused.
+  
+    76 │ vi.mock("swr/infinite", () => ({
+    77 │   __esModule: true,
+  > 78 │   default: (...args: unknown[]) => ({
+       │                ^^^^
+    79 │     data: sampleHistory,
+    80 │     setSize: vi.fn(),
+  
+  i Unused parameters might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: If this is intentional, prepend args with an underscore.
+  
+     76  76 │   vi.mock("swr/infinite", () => ({
+     77  77 │     __esModule: true,
+     78     │ - ··default:·(...args:·unknown[])·=>·({
+         78 │ + ··default:·(..._args:·unknown[])·=>·({
+     79  79 │       data: sampleHistory,
+     80  80 │       setSize: vi.fn(),
+  
+
+stories/chat/SidebarHistory.stories.tsx:85:23 lint/correctness/noUnusedFunctionParameters  FIXABLE  ━━━━━━━━━━
+
+  × This parameter is unused.
+  
+    83 │     mutate: vi.fn(),
+    84 │   }),
+  > 85 │   useSWRInfinite: (...args: unknown[]) => ({
+       │                       ^^^^
+    86 │     data: sampleHistory,
+    87 │     setSize: vi.fn(),
+  
+  i Unused parameters might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: If this is intentional, prepend args with an underscore.
+  
+     83  83 │       mutate: vi.fn(),
+     84  84 │     }),
+     85     │ - ··useSWRInfinite:·(...args:·unknown[])·=>·({
+         85 │ + ··useSWRInfinite:·(..._args:·unknown[])·=>·({
+     86  86 │       data: sampleHistory,
+     87  87 │       setSize: vi.fn(),
+  
+
+stories/chat/VisibilitySelector.stories.tsx:25:43 lint/suspicious/noEmptyBlockStatements ━━━━━━━━━━
+
+  × Unexpected empty block.
+  
+    24 │ vi.mock("@/app/(chat)/actions", () => ({
+  > 25 │   updateChatVisibility: vi.fn(async () => {}),
+       │                                           ^^
+    26 │ }));
+    27 │ 
+  
+  i Empty blocks are usually the result of an incomplete refactoring. Remove the empty block or add a comment inside it if it is intentional.
+  
+
+stories/chat/VisibilitySelector.stories.tsx lint/style/useFilenamingConvention ━━━━━━━━━━
+
+  × The filename should be in kebab-case.
+  
+  i The filename could be renamed to one of the following names:
+    visibility-selector.stories.tsx
+  
+
+tests/e2e/model-selector.test.ts:1:10 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  × Several of these imports are unused.
+  
+  > 1 │ import { expect, test } from "../fixtures";
+      │          ^^^^^^
+    2 │ import { ModelSelectorPage } from "../pages/model-selector";
+    3 │ 
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+    1 │ import·{·expect,·test·}·from·"../fixtures";
+      │          --------                          
+
+tests/pages/model-selector.ts:4:15 lint/style/noParameterProperties ━━━━━━━━━━
+
+  × Use a more explicit class property instead of a parameter property.
+  
+    3 │ export class ModelSelectorPage {
+  > 4 │   constructor(private page: Page) {}
+      │               ^^^^^^^^^^^^^^^^^^
+    5 │ 
+    6 │   async goto() {
+  
+  i Parameter properties are less explicit than other ways of declaring and initializing class properties.
+  
+
+tests/pages/model-selector.ts:4:23 lint/style/useReadonlyClassProperties  FIXABLE  ━━━━━━━━━━
+
+  × Member 'page' is never reassigned.
+  
+    3 │ export class ModelSelectorPage {
+  > 4 │   constructor(private page: Page) {}
+      │                       ^^^^
+    5 │ 
+    6 │   async goto() {
+  
+  i Using readonly improves code safety, clarity, and helps prevent unintended mutations.
+  
+  i Unsafe fix: Add readonly decorator.
+  
+    4 │ ··constructor(private·readonly·page:·Page)·{}
+      │                       +++++++++              
+
+Checked 225 files in 607ms. No fixes applied.
+Found 64 errors.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+
+Error: Ultracite check failed with status 1
+    at oe (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/ultracite/dist/index.js:120:2324)
+    at file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/ultracite/dist/index.js:258:15343
+    at resolveMiddleware (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/initTRPC-DGaJyg8t.mjs:221:23)
+    at callRecursive (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/initTRPC-DGaJyg8t.mjs:256:24)
+    at Object.next (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/initTRPC-DGaJyg8t.mjs:262:12)
+    at inputValidatorMiddleware (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/initTRPC-DGaJyg8t.mjs:50:15)
+    at async callRecursive (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/initTRPC-DGaJyg8t.mjs:256:18)
+    at async procedure (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/initTRPC-DGaJyg8t.mjs:281:18)
+    at async file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/@trpc/server/dist/tracked-DBSMdVzR.mjs:298:13
+    at async Command.<anonymous> (file:///home/user/.npm/_npx/6a6c89456526d418/node_modules/trpc-cli/dist/index.js:352:32)
+ ELIFECYCLE  Command failed with exit code 1.

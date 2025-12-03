@@ -1,12 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { VisibilitySelector } from "@/components/visibility-selector";
 import { vi } from "vitest";
+import { VisibilitySelector } from "@/components/visibility-selector";
 
 vi.mock("@/hooks/use-chat-visibility", () => {
   const React = require("react");
   return {
-    useChatVisibility: ({ initialVisibilityType }: { initialVisibilityType: "private" | "public" }) => {
-      const [visibilityType, setVisibilityType] = React.useState(initialVisibilityType);
+    useChatVisibility: ({
+      initialVisibilityType,
+    }: {
+      initialVisibilityType: "private" | "public";
+    }) => {
+      const [visibilityType, setVisibilityType] = React.useState(
+        initialVisibilityType
+      );
       return {
         visibilityType,
         setVisibilityType,
@@ -16,7 +22,7 @@ vi.mock("@/hooks/use-chat-visibility", () => {
 });
 
 vi.mock("@/app/(chat)/actions", () => ({
-  updateChatVisibility: vi.fn(async () => undefined),
+  updateChatVisibility: vi.fn(async () => {}),
 }));
 
 const meta: Meta<typeof VisibilitySelector> = {

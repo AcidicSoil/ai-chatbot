@@ -5,7 +5,8 @@ import type { UISuggestion } from "@/lib/editor/suggestions";
 const baseSuggestion: UISuggestion = {
   id: "suggestion-1",
   suggestion: "Refactor the helper into a hook",
-  description: "Use a dedicated hook to synchronize the streaming artifact with sidebar state.",
+  description:
+    "Use a dedicated hook to synchronize the streaming artifact with sidebar state.",
   originalText: "const [isOpen, setIsOpen] = useState(false);",
   updatedText: "const [isOpen, setIsOpen] = useSidebarState(chatId);",
   selectionStart: 0,

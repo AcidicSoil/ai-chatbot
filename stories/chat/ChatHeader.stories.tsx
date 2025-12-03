@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { vi } from "vitest";
 import { ChatHeader } from "@/components/chat-header";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -22,7 +22,12 @@ vi.mock("next-auth/react", () => ({
 vi.mock("@/hooks/use-chat-models", () => ({
   useChatModels: () => ({
     availableModels: [
-      { id: "gpt-4.1", name: "GPT-4.1", description: "Hosted model", source: "static" },
+      {
+        id: "gpt-4.1",
+        name: "GPT-4.1",
+        description: "Hosted model",
+        source: "static",
+      },
     ],
     canUseLmStudio: true,
     lmStudio: {
@@ -46,9 +51,12 @@ vi.mock("@/hooks/use-chat-models", () => ({
       ],
       isLoading: false,
       error: undefined,
-      loadModel: vi.fn(async () => ({ displayName: "Phi-3 Mini", modelKey: "phi-3" })),
-      unloadModel: vi.fn(async () => undefined),
-      refresh: vi.fn(async () => undefined),
+      loadModel: vi.fn(async () => ({
+        displayName: "Phi-3 Mini",
+        modelKey: "phi-3",
+      })),
+      unloadModel: vi.fn(async () => {}),
+      refresh: vi.fn(async () => {}),
     },
   }),
 }));

@@ -6,13 +6,20 @@ export async function POST(request: Request) {
 
   try {
     const payload = await request.json();
-    modelKey = typeof payload?.modelKey === "string" ? payload.modelKey : undefined;
+    modelKey =
+      typeof payload?.modelKey === "string" ? payload.modelKey : undefined;
   } catch (error) {
-    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid JSON payload" },
+      { status: 400 }
+    );
   }
 
   if (!modelKey) {
-    return NextResponse.json({ error: "modelKey is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "modelKey is required" },
+      { status: 400 }
+    );
   }
 
   try {

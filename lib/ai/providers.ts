@@ -9,10 +9,7 @@ import {
 } from "ai";
 //import { createGeminiProvider } from "ai-sdk-provider-gemini-cli";
 import { isTestEnvironment } from "../constants";
-import {
-  extractLmStudioIdentifier,
-  isLmStudioModelId,
-} from "./lmstudio-ids";
+import { extractLmStudioIdentifier, isLmStudioModelId } from "./lmstudio-ids";
 
 const lmstudio = createOpenAICompatible({
   name: "lmstudio",

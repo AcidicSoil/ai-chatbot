@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { vi } from "vitest";
 import { SidebarHistory } from "@/components/sidebar-history";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { vi } from "vitest";
 
 const now = new Date();
 const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -60,8 +60,14 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/hooks/use-chat-visibility", () => {
   const React = require("react");
   return {
-    useChatVisibility: ({ initialVisibilityType }: { initialVisibilityType: "private" | "public" }) => {
-      const [visibilityType, setVisibilityType] = React.useState(initialVisibilityType);
+    useChatVisibility: ({
+      initialVisibilityType,
+    }: {
+      initialVisibilityType: "private" | "public";
+    }) => {
+      const [visibilityType, setVisibilityType] = React.useState(
+        initialVisibilityType
+      );
       return { visibilityType, setVisibilityType };
     },
   };

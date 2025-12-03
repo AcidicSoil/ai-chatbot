@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ImageEditor } from "@/components/image-editor";
 
-const placeholderImage = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/D/PwAIgwN/Gr2RFQAAAABJRU5ErkJggg==";
+const placeholderImage =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/D/PwAIgwN/Gr2RFQAAAABJRU5ErkJggg==";
 
 const meta: Meta<typeof ImageEditor> = {
   title: "Artifacts/ImageEditor",
@@ -30,7 +31,8 @@ export const InlinePreview: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Inline mode keeps the editor compact for code artifacts with embedded screenshots.",
+        story:
+          "Inline mode keeps the editor compact for code artifacts with embedded screenshots.",
       },
     },
   },

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
@@ -109,9 +109,9 @@ export function LmStudioModelSettingsButton() {
         </DialogHeader>
 
         {/* Scrollable Container for Lists */}
-        <div className="max-h-[300px] overflow-y-auto pr-2 space-y-4">
+        <div className="max-h-[300px] space-y-4 overflow-y-auto pr-2">
           {!snapshot?.isAvailable && !isLoading && (
-            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+            <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground text-sm">
               LM Studio appears to be offline. Start the LM Studio desktop app
               to load local models.
             </p>
@@ -125,7 +125,7 @@ export function LmStudioModelSettingsButton() {
               </span>
             </div>
             {preferredEntries.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 You haven’t added any preferred models yet.
               </p>
             ) : (
@@ -187,7 +187,7 @@ export function LmStudioModelSettingsButton() {
               </Button>
             </div>
             {downloaded.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 No downloaded models detected. Download a model via the LM
                 Studio app.
               </p>

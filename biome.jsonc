@@ -6,7 +6,11 @@
       "**/*",
       "!components/ui",
       "!lib/utils.ts",
-      "!hooks/use-mobile.ts"
+      "!hooks/use-mobile.ts",
+      "!stories",
+      "!**/stories",
+      "!**/.storybook",
+      "!.storybook"
     ]
   },
   "linter": {

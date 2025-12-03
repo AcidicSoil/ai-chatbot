@@ -37,7 +37,8 @@ export const StreamingUpdate: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Streaming state overlays remote updates while code is regenerating.",
+        story:
+          "Streaming state overlays remote updates while code is regenerating.",
       },
     },
   },

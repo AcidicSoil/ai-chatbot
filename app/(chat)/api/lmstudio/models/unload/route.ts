@@ -6,13 +6,20 @@ export async function POST(request: Request) {
 
   try {
     const payload = await request.json();
-    identifier = typeof payload?.identifier === "string" ? payload.identifier : undefined;
+    identifier =
+      typeof payload?.identifier === "string" ? payload.identifier : undefined;
   } catch (error) {
-    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid JSON payload" },
+      { status: 400 }
+    );
   }
 
   if (!identifier) {
-    return NextResponse.json({ error: "identifier is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "identifier is required" },
+      { status: 400 }
+    );
   }
 
   try {

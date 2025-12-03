@@ -1,6 +1,7 @@
 // path: lib/ai/lmstudio-client.ts
-import { LMStudioClient } from "@lmstudio/sdk";
+
 import type { LLMInfo, LLMInstanceInfo } from "@lmstudio/sdk";
+import { LMStudioClient } from "@lmstudio/sdk";
 
 const client = new LMStudioClient();
 

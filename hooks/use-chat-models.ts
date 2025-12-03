@@ -2,13 +2,13 @@ import { useCallback, useMemo } from "react";
 import useSWR from "swr";
 import type { UserType } from "@/app/(auth)/auth";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { chatModels } from "@/lib/ai/models";
 import type {
   LmStudioDownloadedModel,
   LmStudioLoadResult,
   LmStudioSnapshot,
 } from "@/lib/ai/lmstudio-client";
 import { createLmStudioModelId } from "@/lib/ai/lmstudio-ids";
+import { chatModels } from "@/lib/ai/models";
 import { fetcher } from "@/lib/utils";
 
 type UseChatModelsArgs = {
@@ -38,7 +38,9 @@ type UseChatModelsReturn = {
   };
 };
 
-export function useChatModels({ userType }: UseChatModelsArgs): UseChatModelsReturn {
+export function useChatModels({
+  userType,
+}: UseChatModelsArgs): UseChatModelsReturn {
   const resolvedUserType = userType ?? "guest";
   const entitlements = entitlementsByUserType[resolvedUserType];
   const availableChatModelIds = entitlements?.availableChatModelIds ?? [];
@@ -101,7 +103,7 @@ export function useChatModels({ userType }: UseChatModelsArgs): UseChatModelsRet
   const loadModel = useCallback(
     async (modelKey: string) => {
       if (!canUseLmStudio) {
-        return undefined;
+        return;
       }
 
       const response = await fetch("/api/lmstudio/models/load", {
@@ -113,7 +115,9 @@ export function useChatModels({ userType }: UseChatModelsArgs): UseChatModelsRet
       });
 
       if (!response.ok) {
-        const { error: errorMessage } = await response.json().catch(() => ({ error: "Unable to load LM Studio model" }));
+        const { error: errorMessage } = await response
+          .json()
+          .catch(() => ({ error: "Unable to load LM Studio model" }));
         throw new Error(errorMessage ?? "Unable to load LM Studio model");
       }
 
@@ -139,7 +143,9 @@ export function useChatModels({ userType }: UseChatModelsArgs): UseChatModelsRet
       });
 
       if (!response.ok) {
-        const { error: errorMessage } = await response.json().catch(() => ({ error: "Unable to unload LM Studio model" }));
+        const { error: errorMessage } = await response
+          .json()
+          .catch(() => ({ error: "Unable to unload LM Studio model" }));
         throw new Error(errorMessage ?? "Unable to unload LM Studio model");
       }
 

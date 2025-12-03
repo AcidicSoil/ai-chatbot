@@ -25,11 +25,11 @@ export const chatModels: ChatModel[] = [
     name: "Grok Reasoning",
     description:
       "Uses advanced chain-of-thought reasoning for complex problems",
-  }/*,
+  } /*,
   {
     id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro (CLI)",
     description:
       "Google Gemini via ai-sdk-provider-gemini-cli and Gemini CLI / API key",
-  },*/
+  },*/,
 ];
